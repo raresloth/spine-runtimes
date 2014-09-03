@@ -67,13 +67,12 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	_skeleton = spSkeleton_create(skeletonData);
 	_rootBone = _skeleton->bones[0];
     
-    _blendFunc.src = GL_ONE;
-    _blendFunc.dst = GL_ONE_MINUS_SRC_ALPHA;
     _drawNode = [[CCDrawNode alloc] init];
     [_drawNode setBlendMode: [CCBlendMode premultipliedAlphaMode]];
     [self addChild:_drawNode];
     
     [self setShader:[CCShader positionTextureColorShader]];
+    [self setBlendMode:[CCBlendMode alphaMode]];
 }
 
 - (id) initWithData:(spSkeletonData*)skeletonData ownsSkeletonData:(bool)ownsSkeletonData {
@@ -138,9 +137,8 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	_skeleton->r = nodeColor.red;
 	_skeleton->g = nodeColor.green;
 	_skeleton->b = nodeColor.blue;
-	_skeleton->a = self.opacity;
+	_skeleton->a = self.displayedOpacity;
 
-	int additive = -1;
 	ccColor4B color;
 	const float* uvs = 0;
 	int verticesCount = 0;
@@ -200,16 +198,13 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 		default: ;
 		}
 		if (texture) {
-			if (slot->data->additiveBlending != additive) {
-                    [self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: @(_blendFunc.src),CCBlendFuncDstColor: @(slot->data->additiveBlending ? GL_ONE : _blendFunc.dst)}]];
-				additive = slot->data->additiveBlending;
-			}
 			color.a = _skeleton->a * slot->a * a * 255;
 			float multiplier = _premultipliedAlpha ? color.a : 255;
 			color.r = _skeleton->r * slot->r * r * multiplier;
 			color.g = _skeleton->g * slot->g * g * multiplier;
 			color.b = _skeleton->b * slot->b * b * multiplier;
             self.texture = texture;
+            
             CGSize size = texture.contentSize;
             GLKVector2 center = GLKVector2Make(size.width/2.0, size.height/2.0);
             GLKVector2 extents = GLKVector2Make(size.width/2.0, size.height/2.0);
@@ -218,7 +213,7 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
                 for(int i = 0; (i*2)  < verticesCount; ++i) {
                     CCVertex vertex;
                     vertex.position = GLKVector4Make(worldVertices[i*2], worldVertices[i*2 + 1], 0.0, 1.0);
-                    vertex.color = GLKVector4Make(color.r, color.g, color.b, color.a);
+                    vertex.color = GLKVector4Make(color.r, color.g, color.b, color.a/255.f);
                     vertex.texCoord1 = GLKVector2Make(uvs[i*2], 1 - uvs[(i*2) +1]);
                     CCRenderBufferSetVertex(buffer, i, CCVertexApplyTransform(vertex, transform));
                 }
@@ -348,14 +343,6 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 }
 
 // --- CCBlendProtocol
-
-- (void) setBlendFunc:(ccBlendFunc)func {
-	self.blendFunc = func;
-}
-
-- (ccBlendFunc) blendFunc {
-	return _blendFunc;
-}
 
 - (void) setOpacityModifyRGB:(BOOL)value {
 	_premultipliedAlpha = value;

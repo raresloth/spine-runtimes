@@ -172,7 +172,7 @@ void disposeTrackEntry (spTrackEntry* entry) {
 - (spTrackEntry*) setAnimationForTrack:(int)trackIndex name:(NSString*)name loop:(bool)loop {
 	spAnimation* animation = spSkeletonData_findAnimation(_skeleton->data, [name UTF8String]);
 	if (!animation) {
-		CCLOG(@"Spine: Animation not found: %@", name);
+		CCLOG(@"Spine: Animation not found on %@: %@", self, name);
 		return 0;
 	}
 	return spAnimationState_setAnimation(_state, trackIndex, animation, loop);
@@ -181,7 +181,7 @@ void disposeTrackEntry (spTrackEntry* entry) {
 - (spTrackEntry*) addAnimationForTrack:(int)trackIndex name:(NSString*)name loop:(bool)loop afterDelay:(int)delay {
 	spAnimation* animation = spSkeletonData_findAnimation(_skeleton->data, [name UTF8String]);
 	if (!animation) {
-		CCLOG(@"Spine: Animation not found: %@", name);
+		CCLOG(@"Spine: Animation not found on %@: %@", self, name);
 		return 0;
 	}
 	return spAnimationState_addAnimation(_state, trackIndex, animation, loop, delay);
