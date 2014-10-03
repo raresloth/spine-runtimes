@@ -132,15 +132,15 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 }
 
 -(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform {
-	CCColor* nodeColor = self.color;
+	CCColor* nodeColor = self.displayedColor;
 	_skeleton->r = nodeColor.red;
 	_skeleton->g = nodeColor.green;
 	_skeleton->b = nodeColor.blue;
-	_skeleton->a = self.opacity;
+	_skeleton->a = self.displayedOpacity;
 
 	int additive = -1;
-	ccColor4B color;
-	const float* uvs = 0;
+
+    const float* uvs = 0;
 	int verticesCount = 0;
 	const int* triangles = 0;
 	int trianglesCount = 0;
