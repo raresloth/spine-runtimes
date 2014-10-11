@@ -29,7 +29,8 @@
  *****************************************************************************/
 
 #import <spine/spine.h>
-#import "cocos2d.h"
+#import <cocos2d/CCNode.h>
+#import <cocos2d/CCDrawNode.h>
 
 /** Draws a skeleton. */
 @interface SkeletonRenderer : CCNode<CCBlendProtocol> {

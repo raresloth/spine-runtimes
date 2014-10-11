@@ -30,7 +30,6 @@
 
 #import <spine/spine.h>
 #import <spine/SkeletonRenderer.h>
-#import "cocos2d.h"
 
 @class SkeletonAnimation;
 

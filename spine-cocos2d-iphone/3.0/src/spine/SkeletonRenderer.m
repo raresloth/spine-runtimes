@@ -31,8 +31,8 @@
 #import <spine/SkeletonRenderer.h>
 #import <spine/spine-cocos2d-iphone.h>
 #import <spine/extension.h>
-#import "CCNode_Private.h"
-#import "CCDrawNode.h"
+#import <cocos2d/CCNode_Private.h>
+#import <cocos2d/CCTexture.h>
 
 static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 

@@ -30,6 +30,8 @@
 
 #import <spine/spine-cocos2d-iphone.h>
 #import <spine/extension.h>
+#import <cocos2d/CCTexture.h>
+#import <cocos2d/CCFileUtils.h>
 
 void _spAtlasPage_createTexture (spAtlasPage* self, const char* path) {
 	CCTexture* texture = [[CCTexture textureWithFile:@(path)] retain];
