@@ -70,9 +70,6 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 
 	_blendFunc.src = GL_SRC_ALPHA;
 	_blendFunc.dst = GL_ONE_MINUS_SRC_ALPHA;
-	_drawNode = [[CCDrawNode alloc] init];
-	[_drawNode setBlendMode: [CCBlendMode premultipliedAlphaMode]];
-	[self addChild:_drawNode];
 	
 	[self setShader:[CCShader positionTextureColorShader]];
 }
@@ -230,6 +227,13 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 			}
 		}
 	}
+    
+    if (!_drawNode && (_debugBones || _debugSlots)) {
+        _drawNode = [[CCDrawNode alloc] init];
+        [_drawNode setBlendMode: [CCBlendMode premultipliedAlphaMode]];
+        [self addChild:_drawNode];
+    }
+    
 	[_drawNode clear];
 	if (_debugSlots) {
 		// Slots.
