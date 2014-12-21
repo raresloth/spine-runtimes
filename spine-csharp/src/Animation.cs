@@ -443,7 +443,7 @@ namespace Spine {
 			} else if (lastTime > time) //
 				lastTime = -1;
 
-			int frameIndex = time >= frames[frames.Length - 1] ? frames.Length - 1 : Animation.binarySearch(frames, time) - 1;
+			int frameIndex = (time >= frames[frames.Length - 1] ? frames.Length : Animation.binarySearch(frames, time)) - 1;
 			if (frames[frameIndex] < lastTime) return;
 
 			String attachmentName = attachmentNames[frameIndex];
@@ -571,27 +571,26 @@ namespace Spine {
 			if (slot.attachment != attachment) return;
 
 			float[] frames = this.frames;
-			if (time < frames[0]) {
-				slot.attachmentVerticesCount = 0;
-				return; // Time is before first frame.
-			}
+			if (time < frames[0]) return; // Time is before first frame.
 
 			float[][] frameVertices = this.frameVertices;
 			int vertexCount = frameVertices[0].Length;
 
 			float[] vertices = slot.attachmentVertices;
-			if (vertices.Length != vertexCount) alpha = 1; // Don't mix from uninitialized slot vertices.
 			if (vertices.Length < vertexCount) {
 				vertices = new float[vertexCount];
 				slot.attachmentVertices = vertices;
-			}
+			} else if (vertices.Length > vertexCount)
+				alpha = 1; // Don't mix from uninitialized slot vertices.
 			slot.attachmentVerticesCount = vertexCount;
 
 			if (time >= frames[frames.Length - 1]) { // Time is after last frame.
 				float[] lastVertices = frameVertices[frames.Length - 1];
 				if (alpha < 1) {
-					for (int i = 0; i < vertexCount; i++)
-						vertices[i] += (lastVertices[i] - vertices[i]) * alpha;
+					for (int i = 0; i < vertexCount; i++) {
+						float vertex = vertices[i];
+						vertices[i] = vertex + (lastVertices[i] - vertex) * alpha;
+					}
 				} else
 					Array.Copy(lastVertices, 0, vertices, 0, vertexCount);
 				return;
@@ -609,7 +608,8 @@ namespace Spine {
 			if (alpha < 1) {
 				for (int i = 0; i < vertexCount; i++) {
 					float prev = prevVertices[i];
-					vertices[i] += (prev + (nextVertices[i] - prev) * percent - vertices[i]) * alpha;
+					float vertex = vertices[i];
+					vertices[i] = vertex + (prev + (nextVertices[i] - prev) * percent - vertex) * alpha;
 				}
 			} else {
 				for (int i = 0; i < vertexCount; i++) {
@@ -670,13 +670,15 @@ namespace Spine {
 		}
 	}
 
-	public class FlipXTimeline : CurveTimeline {
+	public class FlipXTimeline : Timeline {
+		internal int boneIndex;
 		internal float[] frames;
 
+		public int BoneIndex { get { return boneIndex; } set { boneIndex = value; } }
 		public float[] Frames { get { return frames; } set { frames = value; } } // time, flip, ...
+		public int FrameCount { get { return frames.Length >> 1; } }
 
-		public FlipXTimeline (int frameCount)
-			: base(frameCount) {
+		public FlipXTimeline (int frameCount) {
 			frames = new float[frameCount << 1];
 		}
 
@@ -687,7 +689,7 @@ namespace Spine {
 			frames[frameIndex + 1] = flip ? 1 : 0;
 		}
 
-		override public void Apply (Skeleton skeleton, float lastTime, float time, List<Event> firedEvents, float alpha) {
+		public void Apply (Skeleton skeleton, float lastTime, float time, List<Event> firedEvents, float alpha) {
 			float[] frames = this.frames;
 			if (time < frames[0]) {
 				if (lastTime > time) Apply(skeleton, lastTime, int.MaxValue, null, 0);
@@ -696,13 +698,13 @@ namespace Spine {
 				lastTime = -1;
 
 			int frameIndex = (time >= frames[frames.Length - 2] ? frames.Length : Animation.binarySearch(frames, time, 2)) - 2;
-			if (frames[frameIndex] <= lastTime) return;
+			if (frames[frameIndex] < lastTime) return;
 
-			Flip(skeleton, frames[frameIndex + 1] != 0);
+			SetFlip(skeleton.bones[boneIndex], frames[frameIndex + 1] != 0);
 		}
 
-		virtual protected void Flip (Skeleton skeleton, bool flip) {
-			skeleton.flipX = flip;
+		virtual protected void SetFlip (Bone bone, bool flip) {
+			bone.flipX = flip;
 		}
 	}
 
@@ -711,8 +713,8 @@ namespace Spine {
 			: base(frameCount) {
 		}
 
-		override protected void Flip (Skeleton skeleton, bool flip) {
-			skeleton.flipY = flip;
+		override protected void SetFlip (Bone bone, bool flip) {
+			bone.flipY = flip;
 		}
 	}
 }
