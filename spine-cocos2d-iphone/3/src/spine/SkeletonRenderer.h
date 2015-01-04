@@ -38,8 +38,6 @@
 	spBone* _rootBone;
 	bool _debugSlots;
 	bool _debugBones;
-	bool _premultipliedAlpha;
-	ccBlendFunc _blendFunc;
     CCDrawNode *_drawNode;
 	bool _ownsSkeletonData;
 	spAtlas* _atlas;

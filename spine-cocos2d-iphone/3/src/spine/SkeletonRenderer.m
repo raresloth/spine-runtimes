@@ -68,8 +68,7 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	_skeleton = spSkeleton_create(skeletonData);
 	_rootBone = _skeleton->bones[0];
 
-	_blendFunc.src = GL_SRC_ALPHA;
-	_blendFunc.dst = GL_ONE_MINUS_SRC_ALPHA;
+    [self setBlendMode:[CCBlendMode premultipliedAlphaMode]];
 	
 	[self setShader:[CCShader positionTextureColorShader]];
 }
@@ -194,20 +193,16 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 		}
 		if (texture) {
 			if (slot->data->additiveBlending != additive) {
-				[self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: @(_blendFunc.src),CCBlendFuncDstColor: @(slot->data->additiveBlending ? GL_ONE : _blendFunc.dst)}]];
+                CCBlendMode *premultBlendMode = [CCBlendMode premultipliedAlphaMode];
+				[self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: premultBlendMode.options[CCBlendFuncSrcColor], CCBlendFuncDstColor: slot->data->additiveBlending ? @(GL_ONE) : premultBlendMode.options[CCBlendFuncDstColor]}]];
 				additive = slot->data->additiveBlending;
 			}
-			if (_premultipliedAlpha) {
-                a *= _skeleton->a * slot->a;
-                r *= _skeleton->r * slot->r * a;
-                g *= _skeleton->g * slot->g * a;
-                b *= _skeleton->b * slot->b * a;
-            } else {
-                a *= _skeleton->a * slot->a;
-                r *= _skeleton->r * slot->r;
-                g *= _skeleton->g * slot->g;
-                b *= _skeleton->b * slot->b;
-			}
+
+            a *= _skeleton->a * slot->a;
+            r *= _skeleton->r * slot->r * a;
+            g *= _skeleton->g * slot->g * a;
+            b *= _skeleton->b * slot->b * a;
+
             self.texture = texture;
 			CGSize size = texture.contentSize;
 			GLKVector2 center = GLKVector2Make(size.width / 2.0, size.height / 2.0);
@@ -352,21 +347,5 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 }
 
 // --- CCBlendProtocol
-
-- (void) setBlendFunc:(ccBlendFunc)func {
-	self.blendFunc = func;
-}
-
-- (ccBlendFunc) blendFunc {
-	return _blendFunc;
-}
-
-- (void) setOpacityModifyRGB:(BOOL)value {
-	_premultipliedAlpha = value;
-}
-
-- (BOOL) doesOpacityModifyRGB {
-	return _premultipliedAlpha;
-}
 
 @end
