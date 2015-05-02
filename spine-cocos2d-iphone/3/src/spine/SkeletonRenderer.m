@@ -192,11 +192,11 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 		default: ;
 		}
 		if (texture) {
-			if (slot->data->additiveBlending != additive) {
-                CCBlendMode *premultBlendMode = [CCBlendMode premultipliedAlphaMode];
-				[self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: premultBlendMode.options[CCBlendFuncSrcColor], CCBlendFuncDstColor: slot->data->additiveBlending ? @(GL_ONE) : premultBlendMode.options[CCBlendFuncDstColor]}]];
-				additive = slot->data->additiveBlending;
-			}
+//			if (slot->data->additiveBlending != additive) {
+//                CCBlendMode *premultBlendMode = [CCBlendMode premultipliedAlphaMode];
+//				[self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: premultBlendMode.options[CCBlendFuncSrcColor], CCBlendFuncDstColor: slot->data->additiveBlending ? @(GL_ONE) : premultBlendMode.options[CCBlendFuncDstColor]}]];
+//				additive = slot->data->additiveBlending;
+//			}
 
             a *= _skeleton->a * slot->a;
             r *= _skeleton->r * slot->r * a;
