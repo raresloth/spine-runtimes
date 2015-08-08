@@ -145,7 +145,7 @@ void disposeTrackEntry (spTrackEntry* entry) {
 	[super dealloc];
 }
 
-- (void) update:(CCTime)deltaTime {
+- (void)fixedUpdate:(CCTime)deltaTime {
 	deltaTime *= _timeScale;
 	spSkeleton_update(_skeleton, deltaTime);
 	spAnimationState_update(_state, deltaTime);
