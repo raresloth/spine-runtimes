@@ -128,100 +128,22 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	[super dealloc];
 }
 
+- (void)updateColor
+{
+    CCColor* nodeColor = self.displayedColor;
+    _skeleton->r = nodeColor.red;
+    _skeleton->g = nodeColor.green;
+    _skeleton->b = nodeColor.blue;
+    _skeleton->a = self.displayedOpacity;
+}
+
 -(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform {
-	CCColor* nodeColor = self.displayedColor;
-	_skeleton->r = nodeColor.red;
-	_skeleton->g = nodeColor.green;
-	_skeleton->b = nodeColor.blue;
-	_skeleton->a = self.displayedOpacity;
+    [self updateColor];
 
-	int additive = -1;
-
-    const float* uvs = 0;
-	int verticesCount = 0;
-	const int* triangles = 0;
-	int trianglesCount = 0;
-	float r = 0, g = 0, b = 0, a = 0;
-	for (int i = 0, n = _skeleton->slotsCount; i < n; i++) {
-		spSlot* slot = _skeleton->drawOrder[i];
-		if (!slot->attachment) continue;
-		CCTexture *texture = 0;
-		switch (slot->attachment->type) {
-		case SP_ATTACHMENT_REGION: {
-			spRegionAttachment* attachment = (spRegionAttachment*)slot->attachment;
-			spRegionAttachment_computeWorldVertices(attachment, slot->bone, worldVertices);
-			texture = [self getTextureForRegion:attachment];
-			uvs = attachment->uvs;
-			verticesCount = 8;
-			triangles = quadTriangles;
-			trianglesCount = 6;
-			r = attachment->r;
-			g = attachment->g;
-			b = attachment->b;
-			a = attachment->a;
-			break;
-		}
-		case SP_ATTACHMENT_MESH: {
-			spMeshAttachment* attachment = (spMeshAttachment*)slot->attachment;
-			spMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
-			texture = [self getTextureForMesh:attachment];
-			uvs = attachment->uvs;
-			verticesCount = attachment->verticesCount;
-			triangles = attachment->triangles;
-			trianglesCount = attachment->trianglesCount;
-			r = attachment->r;
-			g = attachment->g;
-			b = attachment->b;
-			a = attachment->a;
-			break;
-		}
-		case SP_ATTACHMENT_SKINNED_MESH: {
-			spSkinnedMeshAttachment* attachment = (spSkinnedMeshAttachment*)slot->attachment;
-			spSkinnedMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
-			texture = [self getTextureForSkinnedMesh:attachment];
-			uvs = attachment->uvs;
-			verticesCount = attachment->uvsCount;
-			triangles = attachment->triangles;
-			trianglesCount = attachment->trianglesCount;
-			r = attachment->r;
-			g = attachment->g;
-			b = attachment->b;
-			a = attachment->a;
-			break;
-		}
-		default: ;
-		}
-		if (texture) {
-//			if (slot->data->additiveBlending != additive) {
-//                CCBlendMode *premultBlendMode = [CCBlendMode premultipliedAlphaMode];
-//				[self setBlendMode:[CCBlendMode blendModeWithOptions:@{CCBlendFuncSrcColor: premultBlendMode.options[CCBlendFuncSrcColor], CCBlendFuncDstColor: slot->data->additiveBlending ? @(GL_ONE) : premultBlendMode.options[CCBlendFuncDstColor]}]];
-//				additive = slot->data->additiveBlending;
-//			}
-
-            a *= _skeleton->a * slot->a;
-            r *= _skeleton->r * slot->r * a;
-            g *= _skeleton->g * slot->g * a;
-            b *= _skeleton->b * slot->b * a;
-
-            self.texture = texture;
-			CGSize size = texture.contentSize;
-			GLKVector2 center = GLKVector2Make(size.width / 2.0, size.height / 2.0);
-			GLKVector2 extents = GLKVector2Make(size.width * 2.f, size.height * 2.f);
-			if (CCRenderCheckVisbility(transform, center, extents)) {
-				CCRenderBuffer buffer = [renderer enqueueTriangles:(trianglesCount / 3) andVertexes:verticesCount withState:self.renderState globalSortOrder:0];
-				for (int i = 0; i * 2 < verticesCount; ++i) {
-					CCVertex vertex;
-					vertex.position = GLKVector4Make(worldVertices[i * 2], worldVertices[i * 2 + 1], 0.0, 1.0);
-					vertex.color = GLKVector4Make(r, g, b, a);
-					vertex.texCoord1 = GLKVector2Make(uvs[i * 2], 1 - uvs[i * 2 + 1]);
-					CCRenderBufferSetVertex(buffer, i, CCVertexApplyTransform(vertex, transform));
-				}
-				for (int j = 0; j * 3 < trianglesCount; ++j) {
-					CCRenderBufferSetTriangle(buffer, j, triangles[j * 3], triangles[j * 3 + 1], triangles[j * 3 + 2]);
-				}
-			}
-		}
-	}
+    for (int i = 0, n = _skeleton->slotsCount; i < n; i++)
+    {
+        [self draw:renderer transform:transform drawOrder:i];
+    }
     
     if (!_drawNode && (_debugBones || _debugSlots)) {
         _drawNode = [[CCDrawNode alloc] init];
@@ -261,6 +183,88 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 			if (i == 0) [_drawNode drawDot:ccp(bone->worldX, bone->worldY) radius:4 color:[CCColor blueColor]];
 		}
 	}
+}
+
+- (void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)drawOrder
+{
+    const float* uvs = 0;
+    int verticesCount = 0;
+    const int* triangles = 0;
+    int trianglesCount = 0;
+    float r = 0, g = 0, b = 0, a = 0;
+    
+    spSlot* slot = _skeleton->drawOrder[drawOrder];
+    if (!slot->attachment) return;
+    CCTexture *texture = 0;
+    switch (slot->attachment->type) {
+        case SP_ATTACHMENT_REGION: {
+            spRegionAttachment* attachment = (spRegionAttachment*)slot->attachment;
+            spRegionAttachment_computeWorldVertices(attachment, slot->bone, worldVertices);
+            texture = [self getTextureForRegion:attachment];
+            uvs = attachment->uvs;
+            verticesCount = 8;
+            triangles = quadTriangles;
+            trianglesCount = 6;
+            r = attachment->r;
+            g = attachment->g;
+            b = attachment->b;
+            a = attachment->a;
+            break;
+        }
+        case SP_ATTACHMENT_MESH: {
+            spMeshAttachment* attachment = (spMeshAttachment*)slot->attachment;
+            spMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
+            texture = [self getTextureForMesh:attachment];
+            uvs = attachment->uvs;
+            verticesCount = attachment->verticesCount;
+            triangles = attachment->triangles;
+            trianglesCount = attachment->trianglesCount;
+            r = attachment->r;
+            g = attachment->g;
+            b = attachment->b;
+            a = attachment->a;
+            break;
+        }
+        case SP_ATTACHMENT_SKINNED_MESH: {
+            spSkinnedMeshAttachment* attachment = (spSkinnedMeshAttachment*)slot->attachment;
+            spSkinnedMeshAttachment_computeWorldVertices(attachment, slot, worldVertices);
+            texture = [self getTextureForSkinnedMesh:attachment];
+            uvs = attachment->uvs;
+            verticesCount = attachment->uvsCount;
+            triangles = attachment->triangles;
+            trianglesCount = attachment->trianglesCount;
+            r = attachment->r;
+            g = attachment->g;
+            b = attachment->b;
+            a = attachment->a;
+            break;
+        }
+        default: ;
+    }
+    if (texture) {
+        a *= _skeleton->a * slot->a;
+        r *= _skeleton->r * slot->r * a;
+        g *= _skeleton->g * slot->g * a;
+        b *= _skeleton->b * slot->b * a;
+        
+        self.texture = texture;
+        CGSize size = texture.contentSize;
+        GLKVector2 center = GLKVector2Make(size.width / 2.0, size.height / 2.0);
+        GLKVector2 extents = GLKVector2Make(size.width * 2.f, size.height * 2.f);
+        if (CCRenderCheckVisbility(transform, center, extents)) {
+            CCRenderBuffer buffer = [renderer enqueueTriangles:(trianglesCount / 3) andVertexes:verticesCount withState:self.renderState globalSortOrder:0];
+            for (int i = 0; i * 2 < verticesCount; ++i) {
+                CCVertex vertex;
+                vertex.position = GLKVector4Make(worldVertices[i * 2], worldVertices[i * 2 + 1], 0.0, 1.0);
+                vertex.color = GLKVector4Make(r, g, b, a);
+                vertex.texCoord1 = GLKVector2Make(uvs[i * 2], 1 - uvs[i * 2 + 1]);
+                CCRenderBufferSetVertex(buffer, i, CCVertexApplyTransform(vertex, transform));
+            }
+            for (int j = 0; j * 3 < trianglesCount; ++j) {
+                CCRenderBufferSetTriangle(buffer, j, triangles[j * 3], triangles[j * 3 + 1], triangles[j * 3 + 2]);
+            }
+        }
+    }
 }
 
 - (CCTexture*) getTextureForRegion:(spRegionAttachment*)attachment {

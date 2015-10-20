@@ -56,6 +56,9 @@
 - (CCTexture*) getTextureForMesh:(spMeshAttachment*)attachment;
 - (CCTexture*) getTextureForSkinnedMesh:(spSkinnedMeshAttachment*)attachment;
 
+- (void)updateColor;
+- (void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)drawOrder;
+
 // --- Convenience methods for common Skeleton_* functions.
 - (void) updateWorldTransform;
 
