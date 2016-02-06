@@ -56,6 +56,7 @@
 - (CCTexture*) getTextureForMesh:(spMeshAttachment*)attachment;
 - (CCTexture*) getTextureForSkinnedMesh:(spSkinnedMeshAttachment*)attachment;
 
+- (BOOL)ownsSkeletonData;
 - (void)updateColor;
 - (void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)drawOrder;
 

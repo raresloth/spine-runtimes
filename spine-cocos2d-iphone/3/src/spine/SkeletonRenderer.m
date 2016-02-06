@@ -128,6 +128,11 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	[super dealloc];
 }
 
+- (BOOL)ownsSkeletonData
+{
+    return _ownsSkeletonData;
+}
+
 - (void)updateColor
 {
     CCColor* nodeColor = self.displayedColor;
