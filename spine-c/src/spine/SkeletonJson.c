@@ -101,7 +101,7 @@ static void readCurve (spCurveTimeline* timeline, int frameIndex, Json* frame) {
 	}
 }
 
-static spAnimation* _spSkeletonJson_readAnimation (spSkeletonJson* self, Json* root, spSkeletonData *skeletonData) {
+static spAnimation* _spSkeletonJson_readAnimation (spSkeletonJson* self, Json* root, spSkeletonData *skeletonData, int version3Skeleton) {
 	int i;
 	spAnimation* animation;
 	Json* frame;
@@ -120,7 +120,7 @@ static spAnimation* _spSkeletonJson_readAnimation (spSkeletonJson* self, Json* r
 	if (!drawOrder) drawOrder = Json_getItem(root, "draworder");
 
 	for (boneMap = bones ? bones->child : 0; boneMap; boneMap = boneMap->next)
-		timelinesCount += boneMap->size;
+        timelinesCount += (boneMap->size * (version3Skeleton ? 3 : 1));
 	for (slotMap = slots ? slots->child : 0; slotMap; slotMap = slotMap->next)
 		timelinesCount += slotMap->size;
 	timelinesCount += ik ? ik->size : 0;
@@ -211,15 +211,49 @@ static spAnimation* _spSkeletonJson_readAnimation (spSkeletonJson* self, Json* r
 					spTranslateTimeline *timeline =
 							isScale ? spScaleTimeline_create(timelineArray->size) : spTranslateTimeline_create(timelineArray->size);
 					timeline->boneIndex = boneIndex;
+
 					for (frame = timelineArray->child, i = 0; frame; frame = frame->next, ++i) {
-						spTranslateTimeline_setFrame(timeline, i, Json_getFloat(frame, "time", 0), Json_getFloat(frame, "x", 0) * scale,
-								Json_getFloat(frame, "y", 0) * scale);
+                        float xValue = Json_getFloat(frame, "x", 0);
+                        float yValue = Json_getFloat(frame, "y", 0);
+                        if (isScale && version3Skeleton)
+                        {
+                            if (xValue < 0)
+                            {
+                                xValue *= -1;
+                            }
+                            else if (yValue < 0)
+                            {
+                                yValue *= -1;
+                            }
+                        }
+						spTranslateTimeline_setFrame(timeline, i, Json_getFloat(frame, "time", 0), xValue * scale, yValue * scale);
 						readCurve(SUPER(timeline), i, frame);
 					}
 					animation->timelines[animation->timelinesCount++] = SUPER_CAST(spTimeline, timeline);
 					duration = timeline->frames[timelineArray->size * 3 - 3];
 					if (duration > animation->duration) animation->duration = duration;
-				} else if (strcmp(timelineArray->name, "flipX") == 0 || strcmp(timelineArray->name, "flipY") == 0) {
+                    
+                    if (isScale && version3Skeleton)
+                    {
+                        spFlipTimeline *timelineY = spFlipTimeline_create(timelineArray->size, 1);
+                        spFlipTimeline *timelineX = spFlipTimeline_create(timelineArray->size, 0);
+                        timelineY->boneIndex = boneIndex;
+                        timelineX->boneIndex = boneIndex;
+                        for (frame = timelineArray->child, i = 0; frame; frame = frame->next, ++i)
+                        {
+                            float yValue = Json_getFloat(frame, "y", 0);
+                            int flipY = (yValue < 0) ? 1 : 0;
+                            spFlipTimeline_setFrame(timelineY, i, Json_getFloat(frame, "time", 0), flipY);
+                            
+                            float xValue = Json_getFloat(frame, "x", 0);
+                            int flipX = (xValue < 0) ? 1 : 0;
+                            spFlipTimeline_setFrame(timelineX, i, Json_getFloat(frame, "time", 0), flipX);
+                        }
+                        animation->timelines[animation->timelinesCount++] = SUPER_CAST(spTimeline, timelineY);
+                        animation->timelines[animation->timelinesCount++] = SUPER_CAST(spTimeline, timelineX);
+                    }
+				}
+                else if (strcmp(timelineArray->name, "flipX") == 0 || strcmp(timelineArray->name, "flipY") == 0) {
 					int x = strcmp(timelineArray->name, "flipX") == 0;
 					const char* field = x ? "x" : "y";
 					spFlipTimeline *timeline = spFlipTimeline_create(timelineArray->size, x);
@@ -773,6 +807,9 @@ spSkeletonData* spSkeletonJson_readSkeletonData (spSkeletonJson* self, const cha
 			skeletonData->events[i] = eventData;
 		}
 	}
+    
+    const char *version = skeletonData->version;
+    int version3Skeleton = version[0] == '3';
 
 	/* Animations. */
 	animations = Json_getItem(root, "animations");
@@ -780,7 +817,7 @@ spSkeletonData* spSkeletonJson_readSkeletonData (spSkeletonJson* self, const cha
 		Json *animationMap;
 		skeletonData->animations = MALLOC(spAnimation*, animations->size);
 		for (animationMap = animations->child; animationMap; animationMap = animationMap->next)
-			_spSkeletonJson_readAnimation(self, animationMap, skeletonData);
+			_spSkeletonJson_readAnimation(self, animationMap, skeletonData, version3Skeleton);
 	}
 
 	Json_dispose(root);
