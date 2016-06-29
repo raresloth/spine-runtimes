@@ -31,7 +31,7 @@
 #import <spine/SkeletonRenderer.h>
 #import <spine/spine-cocos2d-iphone.h>
 #import <spine/extension.h>
-#import "CCNode_Private.h"
+#import "CCNode.h"
 #import "CCTexture.h"
 #import "CCShader.h"
 
