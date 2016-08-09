@@ -30,7 +30,7 @@
  *****************************************************************************/
 
 #import <spine/spine.h>
-#import "cocos2d.h"
+#import "CCDrawNode.h"
 
 /** Draws a skeleton. */
 @interface SkeletonRenderer : CCNode<CCBlendProtocol> {
@@ -38,14 +38,11 @@
 	spBone* _rootBone;
 	bool _debugSlots;
 	bool _debugBones;
-	bool _premultipliedAlpha;
     bool _skipVisibilityCheck;
-	ccBlendFunc _blendFunc;
 	CCDrawNode* _drawNode;
 	bool _ownsSkeletonData;
 	spAtlas* _atlas;
 	float* _worldVertices;
-	CCBlendMode* screenMode;
 }
 
 + (id) skeletonWithData:(spSkeletonData*)skeletonData ownsSkeletonData:(bool)ownsSkeletonData;
@@ -58,6 +55,10 @@
 
 - (CCTexture*) getTextureForRegion:(spRegionAttachment*)attachment;
 - (CCTexture*) getTextureForMesh:(spMeshAttachment*)attachment;
+
+- (BOOL)ownsSkeletonData;
+- (void)updateColor;
+- (void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)drawOrder;
 
 // --- Convenience methods for common Skeleton_* functions.
 - (void) updateWorldTransform;

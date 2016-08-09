@@ -82,6 +82,41 @@
 		9A5D24A5170A94DA0030D4DD /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A5D24A4170A94DA0030D4DD /* Foundation.framework */; };
 		9A5D24A7170A94DA0030D4DD /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A5D24A6170A94DA0030D4DD /* CoreGraphics.framework */; };
 		9A5D24A9170A94DA0030D4DD /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9A5D24A8170A94DA0030D4DD /* GameKit.framework */; };
+		D9C93AAE1D592B4300E16536 /* Animation.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD5D1D2BDCB5005917E5 /* Animation.c */; };
+		D9C93AAF1D592B4300E16536 /* AnimationState.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD5E1D2BDCB5005917E5 /* AnimationState.c */; };
+		D9C93AB01D592B4300E16536 /* AnimationStateData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD5F1D2BDCB5005917E5 /* AnimationStateData.c */; };
+		D9C93AB11D592B4300E16536 /* Atlas.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD601D2BDCB5005917E5 /* Atlas.c */; };
+		D9C93AB21D592B4300E16536 /* AtlasAttachmentLoader.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD611D2BDCB5005917E5 /* AtlasAttachmentLoader.c */; };
+		D9C93AB31D592B4300E16536 /* Attachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD621D2BDCB5005917E5 /* Attachment.c */; };
+		D9C93AB41D592B4300E16536 /* AttachmentLoader.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD631D2BDCB5005917E5 /* AttachmentLoader.c */; };
+		D9C93AB51D592B4300E16536 /* Bone.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD641D2BDCB5005917E5 /* Bone.c */; };
+		D9C93AB61D592B4300E16536 /* BoneData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD651D2BDCB5005917E5 /* BoneData.c */; };
+		D9C93AB71D592B4300E16536 /* BoundingBoxAttachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD661D2BDCB5005917E5 /* BoundingBoxAttachment.c */; };
+		D9C93AB81D592B4300E16536 /* Event.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD671D2BDCB5005917E5 /* Event.c */; };
+		D9C93AB91D592B4300E16536 /* EventData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD681D2BDCB5005917E5 /* EventData.c */; };
+		D9C93ABA1D592B4300E16536 /* extension.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD691D2BDCB5005917E5 /* extension.c */; };
+		D9C93ABB1D592B4300E16536 /* IkConstraint.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6A1D2BDCB5005917E5 /* IkConstraint.c */; };
+		D9C93ABC1D592B4300E16536 /* IkConstraintData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6B1D2BDCB5005917E5 /* IkConstraintData.c */; };
+		D9C93ABD1D592B4300E16536 /* Json.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6C1D2BDCB5005917E5 /* Json.c */; };
+		D9C93ABE1D592B4300E16536 /* Json.h in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6D1D2BDCB5005917E5 /* Json.h */; };
+		D9C93ABF1D592B4300E16536 /* MeshAttachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6E1D2BDCB5005917E5 /* MeshAttachment.c */; };
+		D9C93AC01D592B4300E16536 /* PathAttachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD6F1D2BDCB5005917E5 /* PathAttachment.c */; };
+		D9C93AC11D592B4300E16536 /* PathConstraint.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD701D2BDCB5005917E5 /* PathConstraint.c */; };
+		D9C93AC21D592B4300E16536 /* PathConstraintData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD711D2BDCB5005917E5 /* PathConstraintData.c */; };
+		D9C93AC31D592B4300E16536 /* RegionAttachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD721D2BDCB5005917E5 /* RegionAttachment.c */; };
+		D9C93AC41D592B4300E16536 /* Skeleton.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD731D2BDCB5005917E5 /* Skeleton.c */; };
+		D9C93AC51D592B4300E16536 /* SkeletonBounds.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD741D2BDCB5005917E5 /* SkeletonBounds.c */; };
+		D9C93AC61D592B4300E16536 /* SkeletonData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD751D2BDCB5005917E5 /* SkeletonData.c */; };
+		D9C93AC71D592B4300E16536 /* SkeletonJson.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD761D2BDCB5005917E5 /* SkeletonJson.c */; };
+		D9C93AC81D592B4300E16536 /* Skin.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD771D2BDCB5005917E5 /* Skin.c */; };
+		D9C93AC91D592B4300E16536 /* Slot.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD781D2BDCB5005917E5 /* Slot.c */; };
+		D9C93ACA1D592B4300E16536 /* SlotData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD791D2BDCB5005917E5 /* SlotData.c */; };
+		D9C93ACB1D592B4300E16536 /* TransformConstraint.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD7A1D2BDCB5005917E5 /* TransformConstraint.c */; };
+		D9C93ACC1D592B4300E16536 /* TransformConstraintData.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD7B1D2BDCB5005917E5 /* TransformConstraintData.c */; };
+		D9C93ACD1D592B4300E16536 /* VertexAttachment.c in Sources */ = {isa = PBXBuildFile; fileRef = 76F5BD7C1D2BDCB5005917E5 /* VertexAttachment.c */; };
+		D9C93ACE1D592B4300E16536 /* SkeletonAnimation.m in Sources */ = {isa = PBXBuildFile; fileRef = 43F7FF841927F94800CA4038 /* SkeletonAnimation.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D9C93ACF1D592B4300E16536 /* SkeletonRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 43F7FF861927F94800CA4038 /* SkeletonRenderer.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
+		D9C93AD01D592B4300E16536 /* spine-cocos2d-objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 43C3282D170B0C19004A9460 /* spine-cocos2d-objc.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -121,6 +156,18 @@
 			remoteInfo = "cocos2d-ios";
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		D9C93AA31D592B1E00E16536 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "include/$(PRODUCT_NAME)";
+			dstSubfolderSpec = 16;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		43C3282D170B0C19004A9460 /* spine-cocos2d-objc.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = "spine-cocos2d-objc.m"; path = "src/spine/spine-cocos2d-objc.m"; sourceTree = "<group>"; };
@@ -210,6 +257,8 @@
 		9A5D24A6170A94DA0030D4DD /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		9A5D24A8170A94DA0030D4DD /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		A28E1F04192926A200D16B23 /* cocos2d.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = cocos2d.xcodeproj; path = cocos2d/cocos2d.xcodeproj; sourceTree = SOURCE_ROOT; };
+		D9C93AA51D592B1E00E16536 /* libspine.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libspine.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9C93AD11D592B5200E16536 /* libcocos2d.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcocos2d.a; path = "../../../../../../../../Library/Developer/Xcode/DerivedData/furdemption-eyrcqkzyzvojsgaafjenvlfyopjd/Build/Products/Release-iphoneos/libcocos2d.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -229,6 +278,13 @@
 				9A5D24A5170A94DA0030D4DD /* Foundation.framework in Frameworks */,
 				9A5D24A7170A94DA0030D4DD /* CoreGraphics.framework in Frameworks */,
 				9A5D24A9170A94DA0030D4DD /* GameKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D9C93AA21D592B1E00E16536 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -373,6 +429,7 @@
 			isa = PBXGroup;
 			children = (
 				9A5D2495170A94DA0030D4DD /* SpineExample.app */,
+				D9C93AA51D592B1E00E16536 /* libspine.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -380,6 +437,7 @@
 		9A5D2497170A94DA0030D4DD /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				D9C93AD11D592B5200E16536 /* libcocos2d.a */,
 				83F1A0EE1986955A001F6B44 /* GLKit.framework */,
 				652107951895250000B1FF07 /* CoreText.framework */,
 				9A5D2498170A94DA0030D4DD /* QuartzCore.framework */,
@@ -425,6 +483,23 @@
 			productReference = 9A5D2495170A94DA0030D4DD /* SpineExample.app */;
 			productType = "com.apple.product-type.application";
 		};
+		D9C93AA41D592B1E00E16536 /* spine */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D9C93AAD1D592B1E00E16536 /* Build configuration list for PBXNativeTarget "spine" */;
+			buildPhases = (
+				D9C93AA11D592B1E00E16536 /* Sources */,
+				D9C93AA21D592B1E00E16536 /* Frameworks */,
+				D9C93AA31D592B1E00E16536 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = spine;
+			productName = "spine-cocos2d-objc";
+			productReference = D9C93AA51D592B1E00E16536 /* libspine.a */;
+			productType = "com.apple.product-type.library.static";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -433,6 +508,11 @@
 			attributes = {
 				LastUpgradeCheck = 0510;
 				ORGANIZATIONNAME = "Craig Hinrichs";
+				TargetAttributes = {
+					D9C93AA41D592B1E00E16536 = {
+						CreatedOnToolsVersion = 7.3.1;
+					};
+				};
 			};
 			buildConfigurationList = 9A5D2490170A94DA0030D4DD /* Build configuration list for PBXProject "spine-cocos2d-objc" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -453,6 +533,7 @@
 			projectRoot = "";
 			targets = (
 				9A5D2494170A94DA0030D4DD /* SpineExample */,
+				D9C93AA41D592B1E00E16536 /* spine */,
 			);
 		};
 /* End PBXProject section */
@@ -569,6 +650,48 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D9C93AA11D592B1E00E16536 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D9C93AAE1D592B4300E16536 /* Animation.c in Sources */,
+				D9C93AAF1D592B4300E16536 /* AnimationState.c in Sources */,
+				D9C93AB01D592B4300E16536 /* AnimationStateData.c in Sources */,
+				D9C93AB11D592B4300E16536 /* Atlas.c in Sources */,
+				D9C93AB21D592B4300E16536 /* AtlasAttachmentLoader.c in Sources */,
+				D9C93AB31D592B4300E16536 /* Attachment.c in Sources */,
+				D9C93AB41D592B4300E16536 /* AttachmentLoader.c in Sources */,
+				D9C93AB51D592B4300E16536 /* Bone.c in Sources */,
+				D9C93AB61D592B4300E16536 /* BoneData.c in Sources */,
+				D9C93AB71D592B4300E16536 /* BoundingBoxAttachment.c in Sources */,
+				D9C93AB81D592B4300E16536 /* Event.c in Sources */,
+				D9C93AB91D592B4300E16536 /* EventData.c in Sources */,
+				D9C93ABA1D592B4300E16536 /* extension.c in Sources */,
+				D9C93ABB1D592B4300E16536 /* IkConstraint.c in Sources */,
+				D9C93ABC1D592B4300E16536 /* IkConstraintData.c in Sources */,
+				D9C93ABD1D592B4300E16536 /* Json.c in Sources */,
+				D9C93ABE1D592B4300E16536 /* Json.h in Sources */,
+				D9C93ABF1D592B4300E16536 /* MeshAttachment.c in Sources */,
+				D9C93AC01D592B4300E16536 /* PathAttachment.c in Sources */,
+				D9C93AC11D592B4300E16536 /* PathConstraint.c in Sources */,
+				D9C93AC21D592B4300E16536 /* PathConstraintData.c in Sources */,
+				D9C93AC31D592B4300E16536 /* RegionAttachment.c in Sources */,
+				D9C93AC41D592B4300E16536 /* Skeleton.c in Sources */,
+				D9C93AC51D592B4300E16536 /* SkeletonBounds.c in Sources */,
+				D9C93AC61D592B4300E16536 /* SkeletonData.c in Sources */,
+				D9C93AC71D592B4300E16536 /* SkeletonJson.c in Sources */,
+				D9C93AC81D592B4300E16536 /* Skin.c in Sources */,
+				D9C93AC91D592B4300E16536 /* Slot.c in Sources */,
+				D9C93ACA1D592B4300E16536 /* SlotData.c in Sources */,
+				D9C93ACB1D592B4300E16536 /* TransformConstraint.c in Sources */,
+				D9C93ACC1D592B4300E16536 /* TransformConstraintData.c in Sources */,
+				D9C93ACD1D592B4300E16536 /* VertexAttachment.c in Sources */,
+				D9C93ACE1D592B4300E16536 /* SkeletonAnimation.m in Sources */,
+				D9C93ACF1D592B4300E16536 /* SkeletonRenderer.m in Sources */,
+				D9C93AD01D592B4300E16536 /* spine-cocos2d-objc.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -595,7 +718,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					DEBUG,
-					"COCOS2D_DEBUG=1",
+					"COCOS2D_DEBUG=2",
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -697,6 +820,86 @@
 			};
 			name = Release;
 		};
+		D9C93AAB1D592B1E00E16536 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(OBJROOT)/UninstalledProducts/include",
+					"$(TARGET_BUILD_DIR)/usr/local/lib/include",
+					"../../cocos2d-iphone/**",
+					"../spine-c/**",
+					src,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				OTHER_LDFLAGS = "-ObjC";
+				PRIVATE_HEADERS_FOLDER_PATH = "include/$(TARGET_NAME)/private";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "include/$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		D9C93AAC1D592B1E00E16536 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				HEADER_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(OBJROOT)/UninstalledProducts/include",
+					"$(TARGET_BUILD_DIR)/usr/local/lib/include",
+					"../../cocos2d-iphone/**",
+					"../spine-c/**",
+					src,
+				);
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_LDFLAGS = "-ObjC";
+				PRIVATE_HEADERS_FOLDER_PATH = "include/$(TARGET_NAME)/private";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PUBLIC_HEADERS_FOLDER_PATH = "include/$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -717,6 +920,14 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		D9C93AAD1D592B1E00E16536 /* Build configuration list for PBXNativeTarget "spine" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D9C93AAB1D592B1E00E16536 /* Debug */,
+				D9C93AAC1D592B1E00E16536 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
 		};
 /* End XCConfigurationList section */
 	};

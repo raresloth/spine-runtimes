@@ -146,7 +146,7 @@ void disposeTrackEntry (spTrackEntry* entry) {
 	[super dealloc];
 }
 
-- (void) update:(CCTime)deltaTime {
+- (void) fixedUpdate:(CCTime)deltaTime {
 	deltaTime *= _timeScale;
 	spSkeleton_update(_skeleton, deltaTime);
 	spAnimationState_update(_state, deltaTime);
@@ -179,7 +179,7 @@ void disposeTrackEntry (spTrackEntry* entry) {
 	return spAnimationState_setAnimation(_state, trackIndex, animation, loop);
 }
 
-- (spTrackEntry*) addAnimationForTrack:(int)trackIndex name:(NSString*)name loop:(bool)loop afterDelay:(int)delay {
+- (spTrackEntry*) addAnimationForTrack:(int)trackIndex name:(NSString*)name loop:(bool)loop afterDelay:(float)delay {
 	spAnimation* animation = spSkeletonData_findAnimation(_skeleton->data, [name UTF8String]);
 	if (!animation) {
 		CCLOG(@"Spine: Animation not found: %@", name);
