@@ -93,7 +93,11 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	spSkeletonData* skeletonData = spSkeletonJson_readSkeletonDataFile(json, [skeletonDataFile UTF8String]);
 	NSAssert(skeletonData, ([NSString stringWithFormat:@"Error reading skeleton data file: %@\nError: %s", skeletonDataFile, json->error]));
 	spSkeletonJson_dispose(json);
-	if (!skeletonData) return 0;
+	if (!skeletonData)
+    {
+        [self release];
+        return nil;
+    }
 
 	[self initialize:skeletonData ownsSkeletonData:YES];
 
@@ -106,14 +110,22 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 
 	_atlas = spAtlas_createFromFile([atlasFile UTF8String], 0);
 	NSAssert(_atlas, ([NSString stringWithFormat:@"Error reading atlas file: %@", atlasFile]));
-	if (!_atlas) return 0;
+	if (!_atlas)
+    {
+        [self release];
+        return nil;
+    }
 
 	spSkeletonJson* json = spSkeletonJson_create(_atlas);
 	json->scale = scale;
 	spSkeletonData* skeletonData = spSkeletonJson_readSkeletonDataFile(json, [skeletonDataFile UTF8String]);
 	NSAssert(skeletonData, ([NSString stringWithFormat:@"Error reading skeleton data file: %@\nError: %s", skeletonDataFile, json->error]));
 	spSkeletonJson_dispose(json);
-	if (!skeletonData) return 0;
+	if (!skeletonData)
+    {
+        [self release];
+        return nil;
+    }
 
 	[self initialize:skeletonData ownsSkeletonData:YES];
 
