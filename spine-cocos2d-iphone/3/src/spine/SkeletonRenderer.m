@@ -139,12 +139,8 @@ static const int quadTriangles[6] = {0, 1, 2, 2, 3, 0};
 	_skeleton->a = self.displayedOpacity;
 
 	int additive = -1;
-<<<<<<< HEAD:spine-cocos2d-iphone/3.0/src/spine/SkeletonRenderer.m
 
-    const float* uvs = 0;
-=======
 	const float* uvs = 0;
->>>>>>> b3b3b25a83d27e6e1c4b6ae64b7d15dcfefda6fe:spine-cocos2d-iphone/3/src/spine/SkeletonRenderer.m
 	int verticesCount = 0;
 	const int* triangles = 0;
 	int trianglesCount = 0;

@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
 -- Spine Runtimes Software License
--- Version 2.1
+-- Version 2.3
 -- 
--- Copyright (c) 2013, Esoteric Software
+-- Copyright (c) 2013-2015, Esoteric Software
 -- All rights reserved.
 -- 
 -- You are granted a perpetual, non-exclusive, non-sublicensable and
--- non-transferable license to install, execute and perform the Spine Runtimes
--- Software (the "Software") solely for internal use. Without the written
--- permission of Esoteric Software (typically granted by licensing Spine), you
--- may not (a) modify, translate, adapt or otherwise create derivative works,
--- improvements of the Software or develop new applications using the Software
--- or (b) remove, delete, alter or obscure any trademarks or any copyright,
--- trademark, patent or other intellectual property or proprietary rights
--- notices on or in the Software, including any copy thereof. Redistributions
--- in binary or source form must include this license and terms.
+-- non-transferable license to use, install, execute and perform the Spine
+-- Runtimes Software (the "Software") and derivative works solely for personal
+-- or internal use. Without the written permission of Esoteric Software (see
+-- Section 2 of the Spine Software License Agreement), you may not (a) modify,
+-- translate, adapt or otherwise create derivative works, improvements of the
+-- Software or develop new applications using the Software or (b) remove,
+-- delete, alter or obscure any trademarks or any copyright, trademark, patent
+-- or other intellectual property or proprietary rights notices on or in the
+-- Software, including any copy thereof. Redistributions in binary or source
+-- form must include this license and terms.
 -- 
 -- THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
 -- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 -- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
--- EVENT SHALL ESOTERIC SOFTARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-- EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
 -- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 -- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -39,6 +40,7 @@ local IkConstraint = require "spine-lua.IkConstraint"
 local EventData = require "spine-lua.EventData"
 local Event = require "spine-lua.Event"
 local AttachmentType = require "spine-lua.AttachmentType"
+local BlendMode = require "spine-lua.BlendMode"
 
 local SkeletonJson = {}
 function SkeletonJson.new (attachmentLoader)
@@ -154,7 +156,7 @@ function SkeletonJson.new (attachmentLoader)
 				end
 
 				slotData.attachmentName = slotMap["attachment"]
-				slotData.additiveBlending = slotMap["additive"]
+				slotData.blendMode = BlendMode[slotMap["blend"] or "normal"]
 
 				table.insert(skeletonData.slots, slotData)
 				skeletonData.slotNameIndices[slotData.name] = #skeletonData.slots
@@ -176,9 +178,8 @@ function SkeletonJson.new (attachmentLoader)
 				end
 				if skin.name == "default" then
 					skeletonData.defaultSkin = skin
-				else
-					table.insert(skeletonData.skins, skin)
 				end
+				table.insert(skeletonData.skins, skin)
 			end
 		end
 
@@ -264,19 +265,21 @@ function SkeletonJson.new (attachmentLoader)
 			return mesh
 
 		elseif type == AttachmentType.skinnedmesh then
-			local mesh = self.attachmentLoader.newSkinnedMeshAttachment(skin, name, path)
+			local mesh = self.attachmentLoader.newSkinningMeshAttachment(skin, name, path)
 			if not mesh then return null end
 			mesh.path = path
 
 			local uvs = getArray(map, "uvs", 1)
-			vertices = getArray(map, "vertices", 1)
+			local vertices = getArray(map, "vertices", 1)
 			local weights = {}
 			local bones = {}
-			for i = 1, vertices do
+			local i, n = 1, #vertices
+			while i < n do
 				local boneCount = vertices[i]
 				i = i + 1
 				table.insert(bones, boneCount)
-				for ii = 1, i + boneCount * 4 do
+				local nn = i + boneCount * 4
+				while i < nn do
 					table.insert(bones, vertices[i])
 					table.insert(weights, vertices[i + 1] * scale)
 					table.insert(weights, vertices[i + 2] * scale)
@@ -466,22 +469,21 @@ function SkeletonJson.new (attachmentLoader)
 		local ffd = map["ffd"]
 		if ffd then
 			for skinName,slotMap in pairs(ffd) do
-				local skin = skeletonData.findSkin(skinName)
+				local skin = skeletonData:findSkin(skinName)
 				for slotName,meshMap in pairs(slotMap) do
-					local slotIndex = skeletonData.findSlotIndex(slotName)
+					local slotIndex = skeletonData:findSlotIndex(slotName)
 					for meshName,values in pairs(meshMap) do
 						local timeline = Animation.FfdTimeline.new()
 						local attachment = skin:getAttachment(slotIndex, meshName)
 						if not attachment then error("FFD attachment not found: " .. meshName) end
 						timeline.slotIndex = slotIndex
 						timeline.attachment = attachment
-
 						local isMesh = attachment.type == AttachmentType.mesh
 						local vertexCount
 						if isMesh then
-							vertexCount = attachment.vertices.length
+							vertexCount = #attachment.vertices
 						else
-							vertexCount = attachment.weights.length / 3 * 2
+							vertexCount = #attachment.weights / 3 * 2
 						end
 
 						local frameIndex = 0
@@ -492,12 +494,18 @@ function SkeletonJson.new (attachmentLoader)
 									vertices = attachment.vertices
 								else
 									vertices = {}
-									vertices.length = vertexCount
+									for i = 1, vertexCount do
+										vertices[i] = 0
+									end
 								end
 							else
 								local verticesValue = valueMap["vertices"]
-								local vertices = {}
+								local scale = self.scale
+								vertices = {}
 								local start = valueMap["offset"] or 0
+								for ii = 1, start do
+									vertices[ii] = 0
+								end
 								if scale == 1 then
 									for ii = 1, #verticesValue do
 										vertices[ii + start] = verticesValue[ii]
@@ -516,7 +524,6 @@ function SkeletonJson.new (attachmentLoader)
 									vertices[vertexCount] = 0
 								end
 							end
-
 							timeline:setFrame(frameIndex, valueMap["time"], vertices)
 							readCurve(timeline, frameIndex, valueMap)
 							frameIndex = frameIndex + 1

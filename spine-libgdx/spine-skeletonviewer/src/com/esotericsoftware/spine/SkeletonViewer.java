@@ -1,25 +1,26 @@
 /******************************************************************************
  * Spine Runtimes Software License
- * Version 2.1
+ * Version 2.3
  * 
- * Copyright (c) 2013, Esoteric Software
+ * Copyright (c) 2013-2015, Esoteric Software
  * All rights reserved.
  * 
  * You are granted a perpetual, non-exclusive, non-sublicensable and
- * non-transferable license to install, execute and perform the Spine Runtimes
- * Software (the "Software") solely for internal use. Without the written
- * permission of Esoteric Software (typically granted by licensing Spine), you
- * may not (a) modify, translate, adapt or otherwise create derivative works,
- * improvements of the Software or develop new applications using the Software
- * or (b) remove, delete, alter or obscure any trademarks or any copyright,
- * trademark, patent or other intellectual property or proprietary rights
- * notices on or in the Software, including any copy thereof. Redistributions
- * in binary or source form must include this license and terms.
+ * non-transferable license to use, install, execute and perform the Spine
+ * Runtimes Software (the "Software") and derivative works solely for personal
+ * or internal use. Without the written permission of Esoteric Software (see
+ * Section 2 of the Spine Software License Agreement), you may not (a) modify,
+ * translate, adapt or otherwise create derivative works, improvements of the
+ * Software or develop new applications using the Software or (b) remove,
+ * delete, alter or obscure any trademarks or any copyright, trademark, patent
+ * or other intellectual property or proprietary rights notices on or in the
+ * Software, including any copy thereof. Redistributions in binary or source
+ * form must include this license and terms.
  * 
  * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL ESOTERIC SOFTARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -35,6 +36,7 @@ import static com.badlogic.gdx.scenes.scene2d.actions.Actions.*;
 import java.awt.FileDialog;
 import java.awt.Frame;
 import java.io.File;
+import java.lang.Thread.UncaughtExceptionHandler;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
@@ -49,6 +51,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Pixmap.Format;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.Texture.TextureFilter;
 import com.badlogic.gdx.graphics.g2d.PolygonSpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas.AtlasRegion;
@@ -82,7 +85,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 	UI ui;
 
 	PolygonSpriteBatch batch;
-	SkeletonRenderer renderer;
+	SkeletonMeshRenderer renderer;
 	SkeletonRendererDebug debugRenderer;
 	SkeletonData skeletonData;
 	Skeleton skeleton;
@@ -93,40 +96,58 @@ public class SkeletonViewer extends ApplicationAdapter {
 	float lastModifiedCheck, reloadTimer;
 
 	public void create () {
+		Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+			public void uncaughtException (Thread thread, Throwable ex) {
+				ex.printStackTrace();
+				Runtime.getRuntime().halt(0); // Prevent Swing from keeping JVM alive.
+			}
+		});
+
 		ui = new UI();
 		batch = new PolygonSpriteBatch();
-		renderer = new SkeletonRenderer();
+		renderer = new SkeletonMeshRenderer();
 		debugRenderer = new SkeletonRendererDebug();
 		skeletonX = (int)(ui.window.getWidth() + (Gdx.graphics.getWidth() - ui.window.getWidth()) / 2);
 		skeletonY = Gdx.graphics.getHeight() / 4;
 
 		loadSkeleton(
-			Gdx.files.internal(Gdx.app.getPreferences("spine-skeletontest").getString("lastFile", "spineboy/spineboy.json")), false);
+			Gdx.files.internal(Gdx.app.getPreferences("spine-skeletonviewer").getString("lastFile", "spineboy/spineboy.json")),
+			false);
 	}
 
-	void loadSkeleton (FileHandle skeletonFile, boolean reload) {
+	void loadSkeleton (final FileHandle skeletonFile, boolean reload) {
 		if (skeletonFile == null) return;
 
-		// A regular texture atlas would normally usually be used. This returns a white image for images not found in the atlas.
-		Pixmap pixmap = new Pixmap(32, 32, Format.RGBA8888);
-		pixmap.setColor(new Color(1, 1, 1, 0.33f));
-		pixmap.fill();
-		final AtlasRegion fake = new AtlasRegion(new Texture(pixmap), 0, 0, 32, 32);
-		pixmap.dispose();
-
-		String atlasFileName = skeletonFile.nameWithoutExtension();
-		if (atlasFileName.endsWith(".json")) atlasFileName = new FileHandle(atlasFileName).nameWithoutExtension();
-		FileHandle atlasFile = skeletonFile.sibling(atlasFileName + ".atlas");
-		if (!atlasFile.exists()) atlasFile = skeletonFile.sibling(atlasFileName + ".atlas.txt");
-		TextureAtlasData data = !atlasFile.exists() ? null : new TextureAtlasData(atlasFile, atlasFile.parent(), false);
-		TextureAtlas atlas = new TextureAtlas(data) {
-			public AtlasRegion findRegion (String name) {
-				AtlasRegion region = super.findRegion(name);
-				return region != null ? region : fake;
-			}
-		};
-
 		try {
+			// A regular texture atlas would normally usually be used. This returns a white image for images not found in the atlas.
+			Pixmap pixmap = new Pixmap(32, 32, Format.RGBA8888);
+			pixmap.setColor(new Color(1, 1, 1, 0.33f));
+			pixmap.fill();
+			final AtlasRegion fake = new AtlasRegion(new Texture(pixmap), 0, 0, 32, 32);
+			pixmap.dispose();
+
+			String atlasFileName = skeletonFile.nameWithoutExtension();
+			if (atlasFileName.endsWith(".json")) atlasFileName = new FileHandle(atlasFileName).nameWithoutExtension();
+			FileHandle atlasFile = skeletonFile.sibling(atlasFileName + ".atlas");
+			if (!atlasFile.exists()) atlasFile = skeletonFile.sibling(atlasFileName + ".atlas.txt");
+			TextureAtlasData data = !atlasFile.exists() ? null : new TextureAtlasData(atlasFile, atlasFile.parent(), false);
+			TextureAtlas atlas = new TextureAtlas(data) {
+				public AtlasRegion findRegion (String name) {
+					AtlasRegion region = super.findRegion(name);
+					if (region == null) {
+						// Look for separate image file.
+						FileHandle file = skeletonFile.sibling(name + ".png");
+						if (file.exists()) {
+							Texture texture = new Texture(file);
+							texture.setFilter(TextureFilter.Linear, TextureFilter.Linear);
+							region = new AtlasRegion(texture, 0, 0, texture.getWidth(), texture.getHeight());
+							region.name = name;
+						}
+					}
+					return region != null ? region : fake;
+				}
+			};
+
 			String extension = skeletonFile.extension();
 			if (extension.equalsIgnoreCase("json") || extension.equalsIgnoreCase("txt")) {
 				SkeletonJson json = new SkeletonJson(atlas);
@@ -136,6 +157,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 				SkeletonBinary binary = new SkeletonBinary(atlas);
 				binary.setScale(ui.scaleSlider.getValue());
 				skeletonData = binary.readSkeletonData(skeletonFile);
+				if (skeletonData.getBones().size == 0) throw new Exception("No bones in skeleton data.");
 			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
@@ -152,7 +174,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 		state = new AnimationState(new AnimationStateData(skeletonData));
 
 		this.skeletonFile = skeletonFile;
-		Preferences prefs = Gdx.app.getPreferences("spine-skeletontest");
+		Preferences prefs = Gdx.app.getPreferences("spine-skeletonviewer");
 		prefs.putString("lastFile", skeletonFile.path());
 		prefs.flush();
 		lastModified = skeletonFile.lastModified();
@@ -160,7 +182,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 		// Populate UI.
 
-		ui.skeletonLabel.setText(skeletonFile.name());
+		ui.window.getTitleLabel().setText(skeletonFile.name());
 		{
 			Array<String> items = new Array();
 			for (Skin skin : skeletonData.getSkins())
@@ -176,8 +198,9 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 		// Configure skeleton from UI.
 
-		skeleton.setSkin(ui.skinList.getSelected());
-		state.setAnimation(0, ui.animationList.getSelected(), ui.loopCheckbox.isChecked());
+		if (ui.skinList.getSelected() != null) skeleton.setSkin(ui.skinList.getSelected());
+		if (ui.animationList.getSelected() != null)
+			state.setAnimation(0, ui.animationList.getSelected(), ui.loopCheckbox.isChecked());
 
 		if (reload) ui.toast("Reloaded.");
 	}
@@ -211,11 +234,9 @@ public class SkeletonViewer extends ApplicationAdapter {
 				state.apply(skeleton);
 			}
 			skeleton.setPosition(skeletonX, skeletonY);
-			// skeleton.setPosition(0, 0);
-			// skeleton.getRootBone().setX(skeletonX);
-			// skeleton.getRootBone().setY(skeletonY);
 			skeleton.updateWorldTransform();
 
+			batch.setColor(Color.WHITE);
 			batch.begin();
 			renderer.draw(batch, skeleton);
 			batch.end();
@@ -225,6 +246,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 			debugRenderer.setBoundingBoxes(ui.debugBoundingBoxesCheckbox.isChecked());
 			debugRenderer.setMeshHull(ui.debugMeshHullCheckbox.isChecked());
 			debugRenderer.setMeshTriangles(ui.debugMeshTrianglesCheckbox.isChecked());
+			debugRenderer.setPaths(ui.debugPathsCheckbox.isChecked());
 			debugRenderer.draw(skeleton);
 		}
 
@@ -251,7 +273,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 		batch.getProjectionMatrix().setToOrtho2D(0, 0, width, height);
 		debugRenderer.getShapeRenderer().setProjectionMatrix(batch.getProjectionMatrix());
 		ui.stage.getViewport().update(width, height, true);
-		if (!ui.minimizeButton.isChecked()) ui.window.setHeight(height);
+		if (!ui.minimizeButton.isChecked()) ui.window.setHeight(height + 8);
 	}
 
 	class UI {
@@ -261,23 +283,23 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 		Window window = new Window("Skeleton", skin);
 		Table root = new Table(skin);
-		TextButton browseButton = new TextButton("Browse", skin);
-		Label skeletonLabel = new Label("", skin);
+		TextButton openButton = new TextButton("Open", skin);
 		List<String> animationList = new List(skin);
 		List<String> skinList = new List(skin);
-		CheckBox loopCheckbox = new CheckBox(" Loop", skin);
-		CheckBox premultipliedCheckbox = new CheckBox(" Premultiplied", skin);
+		CheckBox loopCheckbox = new CheckBox("Loop", skin);
+		CheckBox premultipliedCheckbox = new CheckBox("Premultiplied", skin);
 		Slider mixSlider = new Slider(0f, 2, 0.01f, false, skin);
 		Label mixLabel = new Label("0.3", skin);
 		Slider speedSlider = new Slider(0.1f, 3, 0.01f, false, skin);
 		Label speedLabel = new Label("1.0", skin);
-		CheckBox flipXCheckbox = new CheckBox(" X", skin);
-		CheckBox flipYCheckbox = new CheckBox(" Y", skin);
-		CheckBox debugBonesCheckbox = new CheckBox(" Bones", skin);
-		CheckBox debugRegionsCheckbox = new CheckBox(" Regions", skin);
-		CheckBox debugBoundingBoxesCheckbox = new CheckBox(" Bounds", skin);
-		CheckBox debugMeshHullCheckbox = new CheckBox(" Mesh Hull", skin);
-		CheckBox debugMeshTrianglesCheckbox = new CheckBox(" Mesh Triangles", skin);
+		CheckBox flipXCheckbox = new CheckBox("X", skin);
+		CheckBox flipYCheckbox = new CheckBox("Y", skin);
+		CheckBox debugBonesCheckbox = new CheckBox("Bones", skin);
+		CheckBox debugRegionsCheckbox = new CheckBox("Regions", skin);
+		CheckBox debugBoundingBoxesCheckbox = new CheckBox("Bounds", skin);
+		CheckBox debugMeshHullCheckbox = new CheckBox("Mesh hull", skin);
+		CheckBox debugMeshTrianglesCheckbox = new CheckBox("Triangles", skin);
+		CheckBox debugPathsCheckbox = new CheckBox("Paths", skin);
 		Slider scaleSlider = new Slider(0.1f, 3, 0.01f, false, skin);
 		Label scaleLabel = new Label("1.0", skin);
 		TextButton pauseButton = new TextButton("Pause", skin, "toggle");
@@ -289,6 +311,8 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 		public UI () {
 			// Configure widgets.
+
+			animationList.getSelection().setRequired(false);
 
 			premultipliedCheckbox.setChecked(true);
 
@@ -304,30 +328,25 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 			window.setMovable(false);
 			window.setResizable(false);
+			window.setKeepWithinStage(false);
+			window.setX(-3);
+			window.setY(-2);
 
-			minimizeButton.padTop(-2).padLeft(5);
-			minimizeButton.getColor().a = 0.66f;
-			window.getButtonTable().add(minimizeButton).size(20, 20);
+			window.getTitleLabel().setColor(new Color(0.76f, 1, 1, 1));
+			window.getTitleTable().add(openButton).space(3);
+			window.getTitleTable().add(minimizeButton).width(20);
 
-			ScrollPane skinScroll = new ScrollPane(skinList, skin);
+			ScrollPane skinScroll = new ScrollPane(skinList, skin, "bg");
 			skinScroll.setFadeScrollBars(false);
 
-			ScrollPane animationScroll = new ScrollPane(animationList, skin);
+			ScrollPane animationScroll = new ScrollPane(animationList, skin, "bg");
 			animationScroll.setFadeScrollBars(false);
 
 			// Layout.
 
-			root.pad(2, 4, 4, 4).defaults().space(6);
-			root.columnDefaults(0).top().right();
+			root.defaults().space(6);
+			root.columnDefaults(0).top().right().padTop(3);
 			root.columnDefaults(1).left();
-			root.row().padTop(6);
-			root.add("Skeleton:");
-			{
-				Table table = table();
-				table.add(skeletonLabel).fillX().expandX();
-				table.add(browseButton);
-				root.add(table).fill().row();
-			}
 			root.add("Scale:");
 			{
 				Table table = table();
@@ -340,12 +359,12 @@ public class SkeletonViewer extends ApplicationAdapter {
 			root.add("Debug:");
 			root.add(table(debugBonesCheckbox, debugRegionsCheckbox, debugBoundingBoxesCheckbox)).row();
 			root.add();
-			root.add(table(debugMeshHullCheckbox, debugMeshTrianglesCheckbox)).row();
+			root.add(table(debugMeshHullCheckbox, debugMeshTrianglesCheckbox, debugPathsCheckbox)).row();
 			root.add("Alpha:");
 			root.add(premultipliedCheckbox).row();
 			root.add("Skin:");
 			root.add(skinScroll).expand().fill().minHeight(75).row();
-			root.add("Setup Pose:");
+			root.add("Setup pose:");
 			root.add(table(bonesSetupPoseButton, slotsSetupPoseButton, setupPoseButton)).row();
 			root.add("Animation:");
 			root.add(animationScroll).expand().fill().minHeight(75).row();
@@ -377,7 +396,6 @@ public class SkeletonViewer extends ApplicationAdapter {
 				stage.addActor(table);
 				table.pad(10).bottom().right();
 				table.add(toasts);
-				table.debug();
 			}
 
 			// Events.
@@ -389,7 +407,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 				}
 			});
 
-			browseButton.addListener(new ChangeListener() {
+			openButton.addListener(new ChangeListener() {
 				public void changed (ChangeEvent event, Actor actor) {
 					FileDialog fileDialog = new FileDialog((Frame)null, "Choose skeleton file");
 					fileDialog.setMode(FileDialog.LOAD);
@@ -426,11 +444,11 @@ public class SkeletonViewer extends ApplicationAdapter {
 				public void clicked (InputEvent event, float x, float y) {
 					if (minimizeButton.isChecked()) {
 						window.getCells().get(0).setActor(null);
-						window.setHeight(20);
+						window.setHeight(37);
 						minimizeButton.setText("+");
 					} else {
 						window.getCells().get(0).setActor(root);
-						ui.window.setHeight(Gdx.graphics.getHeight());
+						ui.window.setHeight(Gdx.graphics.getHeight() + 8);
 						minimizeButton.setText("-");
 					}
 				}
@@ -458,14 +476,24 @@ public class SkeletonViewer extends ApplicationAdapter {
 
 			animationList.addListener(new ChangeListener() {
 				public void changed (ChangeEvent event, Actor actor) {
-					if (state != null) state.setAnimation(0, animationList.getSelected(), loopCheckbox.isChecked());
+					if (state != null) {
+						String name = animationList.getSelected();
+						if (name == null)
+							state.clearTrack(0);
+						else
+							state.setAnimation(0, name, loopCheckbox.isChecked());
+					}
 				}
 			});
 
 			skinList.addListener(new ChangeListener() {
 				public void changed (ChangeEvent event, Actor actor) {
 					if (skeleton != null) {
-						skeleton.setSkin(skinList.getSelected());
+						String skinName = skinList.getSelected();
+						if (skinName == null)
+							skeleton.setSkin((Skin)null);
+						else
+							skeleton.setSkin(skinName);
 						skeleton.setSlotsToSetupPose();
 					}
 				}
@@ -503,7 +531,7 @@ public class SkeletonViewer extends ApplicationAdapter {
 				delay(5f), //
 				parallel(moveBy(0, table.getHeight(), 0.3f), fadeOut(0.3f)), //
 				removeActor() //
-				));
+			));
 			for (Actor actor : toasts.getChildren())
 				actor.addAction(moveBy(0, table.getHeight(), 0.3f));
 			toasts.addActor(table);

@@ -1,25 +1,26 @@
 /******************************************************************************
  * Spine Runtimes Software License
- * Version 2.1
+ * Version 2.3
  * 
- * Copyright (c) 2013, Esoteric Software
+ * Copyright (c) 2013-2015, Esoteric Software
  * All rights reserved.
  * 
  * You are granted a perpetual, non-exclusive, non-sublicensable and
- * non-transferable license to install, execute and perform the Spine Runtimes
- * Software (the "Software") solely for internal use. Without the written
- * permission of Esoteric Software (typically granted by licensing Spine), you
- * may not (a) modify, translate, adapt or otherwise create derivative works,
- * improvements of the Software or develop new applications using the Software
- * or (b) remove, delete, alter or obscure any trademarks or any copyright,
- * trademark, patent or other intellectual property or proprietary rights
- * notices on or in the Software, including any copy thereof. Redistributions
- * in binary or source form must include this license and terms.
+ * non-transferable license to use, install, execute and perform the Spine
+ * Runtimes Software (the "Software") and derivative works solely for personal
+ * or internal use. Without the written permission of Esoteric Software (see
+ * Section 2 of the Spine Software License Agreement), you may not (a) modify,
+ * translate, adapt or otherwise create derivative works, improvements of the
+ * Software or develop new applications using the Software or (b) remove,
+ * delete, alter or obscure any trademarks or any copyright, trademark, patent
+ * or other intellectual property or proprietary rights notices on or in the
+ * Software, including any copy thereof. Redistributions in binary or source
+ * form must include this license and terms.
  * 
  * THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL ESOTERIC SOFTARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -43,22 +44,21 @@ public class ScaleTimeline extends TranslateTimeline {
 			return; // Time is before first frame.
 
 		var bone:Bone = skeleton.bones[boneIndex];
-		if (time >= frames[int(frames.length - 3)]) { // Time is after last frame.
-			bone.scaleX += (bone.data.scaleX * frames[int(frames.length - 2)] - bone.scaleX) * alpha;
-			bone.scaleY += (bone.data.scaleY * frames[int(frames.length - 1)] - bone.scaleY) * alpha;
+		if (time >= frames[int(frames.length - ENTRIES)]) { // Time is after last frame.
+			bone.scaleX += (bone.data.scaleX * frames[int(frames.length + PREV_X)] - bone.scaleX) * alpha;
+			bone.scaleY += (bone.data.scaleY * frames[int(frames.length + PREV_Y)] - bone.scaleY) * alpha;
 			return;
 		}
 
 		// Interpolate between the previous frame and the current frame.
-		var frameIndex:int = Animation.binarySearch(frames, time, 3);
-		var prevFrameX:Number = frames[int(frameIndex - 2)];
-		var prevFrameY:Number = frames[int(frameIndex - 1)];
-		var frameTime:Number = frames[frameIndex];
-		var percent:Number = 1 - (time - frameTime) / (frames[int(frameIndex + PREV_FRAME_TIME)] - frameTime);
-		percent = getCurvePercent(frameIndex / 3 - 1, percent < 0 ? 0 : (percent > 1 ? 1 : percent));
+		var frame:int = Animation.binarySearch(frames, time, ENTRIES);
+		var prevX:Number = frames[frame + PREV_X];
+		var prevY:Number = frames[frame + PREV_Y];
+		var frameTime:Number = frames[frame];
+		var percent:Number = getCurvePercent(frame / ENTRIES - 1, 1 - (time - frameTime) / (frames[frame + PREV_TIME] - frameTime));
 
-		bone.scaleX += (bone.data.scaleX * (prevFrameX + (frames[int(frameIndex + FRAME_X)] - prevFrameX) * percent) - bone.scaleX) * alpha;
-		bone.scaleY += (bone.data.scaleY * (prevFrameY + (frames[int(frameIndex + FRAME_Y)] - prevFrameY) * percent) - bone.scaleY) * alpha;
+		bone.scaleX += (bone.data.scaleX * (prevX + (frames[frame + X] - prevX) * percent) - bone.scaleX) * alpha;
+		bone.scaleY += (bone.data.scaleY * (prevY + (frames[frame + Y] - prevY) * percent) - bone.scaleY) * alpha;
 	}
 }
 

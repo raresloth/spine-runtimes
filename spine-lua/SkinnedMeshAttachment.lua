@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
 -- Spine Runtimes Software License
--- Version 2.1
+-- Version 2.3
 -- 
--- Copyright (c) 2013, Esoteric Software
+-- Copyright (c) 2013-2015, Esoteric Software
 -- All rights reserved.
 -- 
 -- You are granted a perpetual, non-exclusive, non-sublicensable and
--- non-transferable license to install, execute and perform the Spine Runtimes
--- Software (the "Software") solely for internal use. Without the written
--- permission of Esoteric Software (typically granted by licensing Spine), you
--- may not (a) modify, translate, adapt or otherwise create derivative works,
--- improvements of the Software or develop new applications using the Software
--- or (b) remove, delete, alter or obscure any trademarks or any copyright,
--- trademark, patent or other intellectual property or proprietary rights
--- notices on or in the Software, including any copy thereof. Redistributions
--- in binary or source form must include this license and terms.
+-- non-transferable license to use, install, execute and perform the Spine
+-- Runtimes Software (the "Software") and derivative works solely for personal
+-- or internal use. Without the written permission of Esoteric Software (see
+-- Section 2 of the Spine Software License Agreement), you may not (a) modify,
+-- translate, adapt or otherwise create derivative works, improvements of the
+-- Software or develop new applications using the Software or (b) remove,
+-- delete, alter or obscure any trademarks or any copyright, trademark, patent
+-- or other intellectual property or proprietary rights notices on or in the
+-- Software, including any copy thereof. Redistributions in binary or source
+-- form must include this license and terms.
 -- 
 -- THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
 -- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 -- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
--- EVENT SHALL ESOTERIC SOFTARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-- EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
 -- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 -- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -36,7 +37,7 @@ function SkinnedMeshAttachment.new (name)
 	
 	local self = {
 		name = name,
-		type = AttachmentType.mesh,
+		type = AttachmentType.skinnedmesh,
 		bones = nil,
 		weights = nil,
 		uvs = nil,
@@ -46,7 +47,7 @@ function SkinnedMeshAttachment.new (name)
 		r = 1, g = 1, b = 1, a = 1,
 		path = nil,
 		rendererObject = nil,
-		regionU = 0, regionV = 0, regionU2 = 0, regionV2 = 0, regionRotate = false,
+		regionU = 0, regionV = 0, regionU2 = 1, regionV2 = 1, regionRotate = false,
 		regionOffsetX = 0, regionOffsetY = 0,
 		regionWidth = 0, regionHeight = 0,
 		regionOriginalWidth = 0, regionOriginalHeight = 0,
@@ -74,21 +75,21 @@ function SkinnedMeshAttachment.new (name)
 	end
 
 	function self:computeWorldVertices (x, y, slot, worldVertices)
-		local skeletonBones = slot.skeleton.bones
+		local skeletonBones = slot.bone.skeleton.bones
+x,y=slot.bone.skeleton.x,slot.bone.skeleton.y
 		local weights = self.weights
 		local bones = self.bones
-
-		local w, v, b, f = 0, 0, 0, 0
-		local	n = bones.length
+		local w, v, b, f = 1, 1, 1, 1
+		local	n = #bones
 		local wx, wy, bone, vx, vy, weight
-		if #slot.attachmentVertices == 0 then
-			while v < n do
+		if slot.attachmentVerticesCount == 0 then
+			while v <= n do
 				wx = 0
 				wy = 0
 				local nn = bones[v] + v
 				v = v + 1
 				while v <= nn do
-					bone = skeletonBones[bones[v]]
+					bone = skeletonBones[bones[v] + 1]
 					vx = weights[b]
 					vy = weights[b + 1]
 					weight = weights[b + 2]
@@ -103,13 +104,13 @@ function SkinnedMeshAttachment.new (name)
 			end
 		else
 			local ffd = slot.attachmentVertices
-			while v < n do
+			while v <= n do
 				wx = 0
 				wy = 0
 				local nn = bones[v] + v
 				v = v + 1
 				while v <= nn do
-					bone = skeletonBones[bones[v]]
+					bone = skeletonBones[bones[v] + 1]
 					vx = weights[b] + ffd[f]
 					vy = weights[b + 1] + ffd[f + 1]
 					weight = weights[b + 2]
@@ -128,4 +129,4 @@ function SkinnedMeshAttachment.new (name)
 
 	return self
 end
-return MeshAttachment
+return SkinnedMeshAttachment

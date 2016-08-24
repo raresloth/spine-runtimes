@@ -1,25 +1,26 @@
 -------------------------------------------------------------------------------
 -- Spine Runtimes Software License
--- Version 2.1
+-- Version 2.3
 -- 
--- Copyright (c) 2013, Esoteric Software
+-- Copyright (c) 2013-2015, Esoteric Software
 -- All rights reserved.
 -- 
 -- You are granted a perpetual, non-exclusive, non-sublicensable and
--- non-transferable license to install, execute and perform the Spine Runtimes
--- Software (the "Software") solely for internal use. Without the written
--- permission of Esoteric Software (typically granted by licensing Spine), you
--- may not (a) modify, translate, adapt or otherwise create derivative works,
--- improvements of the Software or develop new applications using the Software
--- or (b) remove, delete, alter or obscure any trademarks or any copyright,
--- trademark, patent or other intellectual property or proprietary rights
--- notices on or in the Software, including any copy thereof. Redistributions
--- in binary or source form must include this license and terms.
+-- non-transferable license to use, install, execute and perform the Spine
+-- Runtimes Software (the "Software") and derivative works solely for personal
+-- or internal use. Without the written permission of Esoteric Software (see
+-- Section 2 of the Spine Software License Agreement), you may not (a) modify,
+-- translate, adapt or otherwise create derivative works, improvements of the
+-- Software or develop new applications using the Software or (b) remove,
+-- delete, alter or obscure any trademarks or any copyright, trademark, patent
+-- or other intellectual property or proprietary rights notices on or in the
+-- Software, including any copy thereof. Redistributions in binary or source
+-- form must include this license and terms.
 -- 
 -- THIS SOFTWARE IS PROVIDED BY ESOTERIC SOFTWARE "AS IS" AND ANY EXPRESS OR
 -- IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
 -- MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
--- EVENT SHALL ESOTERIC SOFTARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+-- EVENT SHALL ESOTERIC SOFTWARE BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
 -- SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
 -- PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
 -- OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
@@ -52,6 +53,8 @@ spine.AnimationState = require "spine-lua.AnimationState"
 spine.EventData = require "spine-lua.EventData"
 spine.Event = require "spine-lua.Event"
 spine.SkeletonBounds = require "spine-lua.SkeletonBounds"
+spine.BlendMode = require "spine-lua.BlendMode"
+spine.Atlas = require "spine-lua.Atlas"
 
 spine.utils.readFile = function (fileName, base)
 	if not base then base = system.ResourceDirectory end
@@ -80,6 +83,13 @@ function spine.Skeleton.new (skeletonData, group)
 	-- Customizes where images are found.
 	function self:createImage (attachment)
 		return display.newImage(attachment.name .. ".png")
+	end
+
+	-- Customizes where images are found.
+	function self:createMesh (attachment, meshParameters)
+		local mesh = display.newMesh(meshParameters)
+		mesh.fill = {type="image", filename=attachment.name .. ".png"}
+		return mesh
 	end
 
 	-- Customizes what happens when an image changes, return false to recreate the image.
@@ -125,7 +135,15 @@ function spine.Skeleton.new (skeletonData, group)
 						print("Error creating image: " .. attachment.name)
 						image = spine.Skeleton.failed
 					end
-					if slot.data.additiveBlending then image.blendMode = "add" end
+					if slot.data.blendMode == spine.BlendMode.normal then
+						image.blendMode = "normal"
+					elseif slot.data.blendMode == spine.BlendMode.additive then
+						image.blendMode = "add"
+					elseif slot.data.blendMode == spine.BlendMode.multiply then
+						image.blendMode = "multiply"
+					elseif slot.data.blendMode == spine.BlendMode.screen then
+						image.blendMode = "screen"
+					end
 					images[slot] = image
 				end
 				-- Position image based on attachment and bone.
@@ -190,6 +208,69 @@ function spine.Skeleton.new (skeletonData, group)
 					
 					self.group:insert(image)
 				end
+			elseif attachment.type == spine.AttachmentType.mesh or attachment.type == spine.AttachmentType.skinnedmesh then
+
+				if image and image.attachment ~= attachment then -- Attachment image has changed.
+					if self:modifyImage(image, attachment) then
+						image.lastR, image.lastA = nil, nil
+						image.attachment = attachment
+					else -- If not modified, remove the image and it will be recreated.
+						display.remove(image)
+						images[slot] = nil
+						image = nil
+					end
+				end
+
+				local worldVertices = {}
+				attachment:updateUVs()
+				attachment:computeWorldVertices(0, 0, slot, worldVertices)
+
+				for i = 2, #worldVertices, 2 do
+					worldVertices[i] = -worldVertices[i]
+				end
+
+				if not image then
+					local meshParameters = {
+						mode = "indexed",
+						vertices =  worldVertices,
+						indices = attachment.triangles,
+						uvs = attachment.uvs,
+						zeroBasedIndices = true,
+					}
+					image = self:createMesh(attachment, meshParameters)
+					if image then
+						if slot.data.blendMode == spine.BlendMode.normal then
+							image.blendMode = "normal"
+						elseif slot.data.blendMode == spine.BlendMode.additive then
+							image.blendMode = "add"
+						elseif slot.data.blendMode == spine.BlendMode.multiply then
+							image.blendMode = "multiply"
+						elseif slot.data.blendMode == spine.BlendMode.screen then
+							image.blendMode = "screen"
+						end
+						self.images[slot] = image
+						image:translate( image.path:getVertexOffset() )
+					end
+				else
+					for i = 1, #worldVertices, 2 do
+						image.path:setVertex( 1+ 0.5*(i-1), worldVertices[i], worldVertices[i+1])
+					end
+				end
+
+				if image then
+					local r, g, b = skeletonR * slot.r, skeletonG * slot.g, skeletonB * slot.b
+					if image.lastR ~= r or image.lastG ~= g or image.lastB ~= b or not image.lastR then
+						image:setFillColor(r, g, b)
+						image.lastR, image.lastG, image.lastB = r, g, b
+					end
+					local a = skeletonA * slot.a
+					if a and (image.lastA ~= a or not image.lastA) then
+						image.lastA = a
+						image.alpha = image.lastA
+					end
+					self.group:insert(image)
+				end
+
 			end
 		end
 
@@ -245,6 +326,93 @@ function spine.Skeleton.new (skeletonData, group)
 		end
 	end
 	return self
+end
+
+
+function spine.GetAtlasSprites ( name, location )
+	
+	local dir = name
+	if dir:match(".-/.-") then
+		dir = string.gsub(dir, "(.*/)(.*)", "%1")
+	end
+
+	if string.sub(dir, -1) ~= "/" then
+		dir = dir .. "/"
+	end
+
+	local pages = spine.Atlas.parse( name, location )
+
+	local sprites = {}
+
+	for _,page in ipairs(pages) do
+		local options = { frames={} }
+		if page.size then
+			options.sheetContentWidth, options.sheetContentHeight = unpack( page.size )
+		end
+		for i,region in ipairs(page.regions) do
+			sprites[region.name] = { frame=i, region=region, page=page }
+			local frame = {	}
+			frame.x, frame.y = unpack(region.xy)
+			frame.width, frame.height = unpack(region.size)
+			if region.rotate then
+				frame.width, frame.height = frame.height, frame.width
+			end
+			if region.offset[1] ~= 0 or region.offset[2] ~= 0 or region.size[1]  ~= region.orig[1] or region.size[2]  ~= region.orig[2] then
+				print("WARNING: Corona currently does not srtipping whitespaces in Spine atlases (atlas: " .. name .. ", sprite: " .. region.name .. ")")
+			end
+			table.insert( options.frames, frame )
+		end
+
+		local oldMag, oldMin = display.getDefault( "magTextureFilter" ), display.getDefault( "minTextureFilter" )
+		local newMag, newMin = "linear", "linear"
+		if string.find("Nearest", page.filter[1]) then
+			newMin = "nearest"
+		end
+		if string.find("Nearest", page.filter[2]) then
+			newMag = "nearest"
+		end
+		display.setDefault( "magTextureFilter", newMag )
+		display.setDefault( "minTextureFilter", newMin )
+		page.sheet = graphics.newImageSheet( dir..page.name, options )
+		display.setDefault( "magTextureFilter", oldMag )
+		display.setDefault( "minTextureFilter", oldMin )
+	end
+	
+	function sprites.ATLAS_HELPER_createImage(_, attachment)
+		local sprite = sprites[attachment.name]
+		local obj = display.newRect( 0, 0, 100, 100 ) 
+		if sprite then
+			obj.fill = { type="image", sheet=sprite.page.sheet, frame=sprite.frame}
+			if sprite.region.rotate then
+				local fill = obj.fill
+				if fill then
+					fill.rotation = 90
+				end
+			end
+		end
+		return obj
+	end
+	function sprites.ATLAS_HELPER_createMesh(_, attachment, meshParameters)
+		local sprite = sprites[attachment.name]
+		local obj = display.newMesh(meshParameters) 
+		if sprite then
+			obj.fill = { type="image", sheet=sprite.page.sheet, frame=sprite.frame}
+			if sprite.region.rotate then
+				local fill = obj.fill
+				if fill then
+					fill.rotation = 90
+				end
+			end
+		end
+		return obj
+	end
+
+	function sprites.ATLAS_HELPER_setup(skeleton)
+		skeleton.createImage = sprites.ATLAS_HELPER_createImage
+		skeleton.createMesh = sprites.ATLAS_HELPER_createMesh
+	end
+
+	return sprites
 end
 
 return spine

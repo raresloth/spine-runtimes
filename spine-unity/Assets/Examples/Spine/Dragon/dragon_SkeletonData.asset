@@ -11,10 +11,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1b3b4b945939a54ea0b23d3396115fb, type: 3}
   m_Name: dragon_SkeletonData
   m_EditorClassIdentifier: 
-  atlasAsset: {fileID: 11400000, guid: 6f86779b1deba7c4aaec1f5895510b57, type: 2}
+  atlasAssets:
+  - {fileID: 11400000, guid: 6f86779b1deba7c4aaec1f5895510b57, type: 2}
   skeletonJSON: {fileID: 4900000, guid: 95c98e245823e2243a1d8e7a1ef16c51, type: 3}
-  scale: .00999999978
+  scale: 0.01
   fromAnimation: []
   toAnimation: []
   duration: []
-  defaultMix: .200000003
+  defaultMix: 0.2
+  controller: {fileID: 0}
