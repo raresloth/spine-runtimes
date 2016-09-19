@@ -10,10 +10,10 @@
     
     sharedFileUtils.searchPath =
     [NSArray arrayWithObjects:
-     [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Images"],
-     [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Fonts"],
-     [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"Resources-shared"],
-     [[NSBundle mainBundle] resourcePath],
+     [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Images"],
+     [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Fonts"],
+     [[[NSBundle bundleForClass:[self class]] resourcePath] stringByAppendingPathComponent:@"Resources-shared"],
+     [[NSBundle bundleForClass:[self class]] resourcePath],
      nil];
     
     [self setupCocos2dWithOptions:@{
