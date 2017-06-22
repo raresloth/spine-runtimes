@@ -64,6 +64,8 @@
 - (void) updateWorldTransform;
 
 - (void)updateColor;
+-(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)i;
+
 - (void) setToSetupPose;
 - (void) setBonesToSetupPose;
 - (void) setSlotsToSetupPose;

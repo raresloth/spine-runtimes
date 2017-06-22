@@ -186,161 +186,8 @@ static bool handlerQueued = false;
 	
     [self updateColor];
 
-	int blendMode = -1;
-	uint32_t srcBlend = GL_SRC_ALPHA;
-	uint32_t dstBlend = GL_ONE_MINUS_SRC_ALPHA;
-	float* uvs = 0;
-	float* vertices = _worldVertices;
-	int verticesCount = 0;
-	unsigned short* triangles = 0;
-	int trianglesCount = 0;
-	float r = 0, g = 0, b = 0, a = 0;
-	float dr = 0, dg = 0, db = 0;
 	for (int i = 0, n = _skeleton->slotsCount; i < n; i++) {
-		spSlot* slot = _skeleton->drawOrder[i];
-		if (!slot->attachment) continue;
-		CCTexture *texture = 0;
-		switch (slot->attachment->type) {
-		case SP_ATTACHMENT_REGION: {
-			spRegionAttachment* attachment = (spRegionAttachment*)slot->attachment;
-			spRegionAttachment_computeWorldVertices(attachment, slot->bone, vertices, 0, 2);
-			texture = [self getTextureForRegion:attachment];
-			uvs = attachment->uvs;
-			verticesCount = 8;
-			triangles = quadTriangles;
-			trianglesCount = 6;
-			r = attachment->color.r;
-			g = attachment->color.g;
-			b = attachment->color.b;
-			a = attachment->color.a;
-			break;
-		}
-		case SP_ATTACHMENT_MESH: {
-			spMeshAttachment* attachment = (spMeshAttachment*)slot->attachment;
-			spVertexAttachment_computeWorldVertices(SUPER(attachment), slot, 0, attachment->super.worldVerticesLength, vertices, 0, 2);
-			texture = [self getTextureForMesh:attachment];
-			uvs = attachment->uvs;
-			verticesCount = attachment->super.worldVerticesLength;
-			triangles = attachment->triangles;
-			trianglesCount = attachment->trianglesCount;
-			r = attachment->color.r;
-			g = attachment->color.g;
-			b = attachment->color.b;
-			a = attachment->color.a;
-			break;
-		}
-		case SP_ATTACHMENT_CLIPPING: {
-			spClippingAttachment* clip = (spClippingAttachment*)slot->attachment;
-			spSkeletonClipping_clipStart(_clipper, slot, clip);
-		}
-		default: ;
-		}
-		
-		if (texture) {
-			if (slot->data->blendMode != blendMode) {
-				blendMode = slot->data->blendMode;
-				switch (slot->data->blendMode) {
-				case SP_BLEND_MODE_ADDITIVE:
-					[self setBlendMode:[CCBlendMode addMode]];
-					srcBlend = !_premultipliedAlpha ? GL_SRC_ALPHA : GL_ONE;
-					dstBlend = GL_ONE;
-					break;
-				case SP_BLEND_MODE_MULTIPLY:
-					[self setBlendMode:[CCBlendMode multiplyMode]];
-					srcBlend = GL_DST_COLOR;
-					dstBlend = GL_ONE_MINUS_SRC_ALPHA;
-					break;
-				case SP_BLEND_MODE_SCREEN:
-					[self setBlendMode:screenMode];
-					srcBlend = GL_ONE;
-					dstBlend = GL_ONE_MINUS_SRC_COLOR;
-					break;
-				default:
-					[self setBlendMode:_premultipliedAlpha ? [CCBlendMode premultipliedAlphaMode] : [CCBlendMode alphaMode]];
-					srcBlend = !_premultipliedAlpha ? GL_SRC_ALPHA : GL_ONE;
-					dstBlend = GL_ONE_MINUS_SRC_ALPHA;
-				}
-			}
-			if (_premultipliedAlpha) {
-				a *= _skeleton->color.a * slot->color.a;
-				r *= _skeleton->color.r * slot->color.r * a;
-				g *= _skeleton->color.g * slot->color.g * a;
-				b *= _skeleton->color.b * slot->color.b * a;
-			} else {
-				a *= _skeleton->color.a * slot->color.a;
-				r *= _skeleton->color.r * slot->color.r;
-				g *= _skeleton->color.g * slot->color.g;
-				b *= _skeleton->color.b * slot->color.b;
-			}
-			self.texture = texture;
-			CGSize size = texture.contentSize;
-			GLKVector2 center = GLKVector2Make(size.width / 2.0, size.height / 2.0);
-			GLKVector2 extents = GLKVector2Make(size.width / 2.0, size.height / 2.0);
-			if (_skipVisibilityCheck || CCRenderCheckVisbility(transform, center, extents)) {
-				
-				if (spSkeletonClipping_isClipping(_clipper)) {
-					spSkeletonClipping_clipTriangles(_clipper, vertices, verticesCount, triangles, trianglesCount, uvs, 2);
-					vertices = _clipper->clippedVertices->items;
-					verticesCount = _clipper->clippedVertices->size;
-					uvs = _clipper->clippedUVs->items;
-					triangles = _clipper->clippedTriangles->items;
-					trianglesCount = _clipper->clippedTriangles->size;
-				}
-				
-				if (trianglesCount > 0) {
-					if (!self.twoColorTint) {
-						CCRenderBuffer buffer = [renderer enqueueTriangles:(trianglesCount / 3) andVertexes:verticesCount withState:self.renderState globalSortOrder:0];
-						for (int i = 0; i * 2 < verticesCount; ++i) {
-							CCVertex vertex;
-							vertex.position = GLKVector4Make(vertices[i * 2], vertices[i * 2 + 1], 0.0, 1.0);
-							vertex.color = GLKVector4Make(r, g, b, a);
-							vertex.texCoord1 = GLKVector2Make(uvs[i * 2], 1 - uvs[i * 2 + 1]);
-							CCRenderBufferSetVertex(buffer, i, CCVertexApplyTransform(vertex, transform));
-						}
-						for (int j = 0; j * 3 < trianglesCount; ++j) {
-							CCRenderBufferSetTriangle(buffer, j, triangles[j * 3], triangles[j * 3 + 1], triangles[j * 3 + 2]);
-						}
-					} else {
-						if (slot->darkColor) {
-							dr = slot->darkColor->r;
-							dg = slot->darkColor->g;
-							db = slot->darkColor->b;
-						} else {
-							dr = dg = db = 0;
-						}
-						
-						spMeshPart meshPart;
-						spMesh_allocatePart(mesh, &meshPart, verticesCount / 2, trianglesCount, self.texture.name, srcBlend, dstBlend);
-						
-						spVertex* verts = &meshPart.mesh->vertices[meshPart.startVertex];
-						unsigned short* indices = &meshPart.mesh->indices[meshPart.startIndex];
-						
-						for (int i = 0; i * 2 < verticesCount; i++, verts++) {
-							CCVertex vertex;
-							vertex.position = GLKVector4Make(vertices[i * 2], vertices[i * 2 + 1], 0.0, 1.0);
-							vertex = CCVertexApplyTransform(vertex, transform);
-							verts->x = vertex.position.x;
-							verts->y = vertex.position.y;
-							verts->z = vertex.position.z;
-							verts->w = vertex.position.w;
-							verts->color = ((unsigned short)(r * 255))| ((unsigned short)(g * 255)) << 8 | ((unsigned short)(b * 255)) <<16 | ((unsigned short)(a * 255)) << 24;
-							verts->color2 = ((unsigned short)(dr * 255)) | ((unsigned short)(dg * 255)) << 8 | ((unsigned short)(db * 255)) << 16 | ((unsigned short)(255)) << 24;
-							verts->u = uvs[i * 2];
-							verts->v = 1 - uvs[i * 2 + 1];
-						}
-						
-						for (int j = 0; j < trianglesCount; j++, indices++) {
-							*indices = triangles[j];
-						}
-						
-						[renderer enqueueBlock:^{
-							spTwoColorBatcher_add(batcher, meshPart);
-						} globalSortOrder:0 debugLabel: nil threadSafe: false];
-					}
-				}
-			}
-		}
-		spSkeletonClipping_clipEnd(_clipper, slot);
+        [self draw:renderer transform:transform drawOrder:i];
 	}
 	spSkeletonClipping_clipEnd2(_clipper);
 	
@@ -382,6 +229,165 @@ static bool handlerQueued = false;
 			if (i == 0) [_drawNode drawDot:ccp(bone->worldX, bone->worldY) radius:4 color:[CCColor blueColor]];
 		}
 	}
+}
+
+-(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform drawOrder:(int)i
+{
+    int blendMode = -1;
+    uint32_t srcBlend = GL_SRC_ALPHA;
+    uint32_t dstBlend = GL_ONE_MINUS_SRC_ALPHA;
+    float* uvs = 0;
+    float* vertices = _worldVertices;
+    int verticesCount = 0;
+    unsigned short* triangles = 0;
+    int trianglesCount = 0;
+    float r = 0, g = 0, b = 0, a = 0;
+    float dr = 0, dg = 0, db = 0;
+    
+    spSlot* slot = _skeleton->drawOrder[i];
+    if (!slot->attachment) return;
+    CCTexture *texture = 0;
+    switch (slot->attachment->type) {
+        case SP_ATTACHMENT_REGION: {
+            spRegionAttachment* attachment = (spRegionAttachment*)slot->attachment;
+            spRegionAttachment_computeWorldVertices(attachment, slot->bone, vertices, 0, 2);
+            texture = [self getTextureForRegion:attachment];
+            uvs = attachment->uvs;
+            verticesCount = 8;
+            triangles = quadTriangles;
+            trianglesCount = 6;
+            r = attachment->color.r;
+            g = attachment->color.g;
+            b = attachment->color.b;
+            a = attachment->color.a;
+            break;
+        }
+        case SP_ATTACHMENT_MESH: {
+            spMeshAttachment* attachment = (spMeshAttachment*)slot->attachment;
+            spVertexAttachment_computeWorldVertices(SUPER(attachment), slot, 0, attachment->super.worldVerticesLength, vertices, 0, 2);
+            texture = [self getTextureForMesh:attachment];
+            uvs = attachment->uvs;
+            verticesCount = attachment->super.worldVerticesLength;
+            triangles = attachment->triangles;
+            trianglesCount = attachment->trianglesCount;
+            r = attachment->color.r;
+            g = attachment->color.g;
+            b = attachment->color.b;
+            a = attachment->color.a;
+            break;
+        }
+        case SP_ATTACHMENT_CLIPPING: {
+            spClippingAttachment* clip = (spClippingAttachment*)slot->attachment;
+            spSkeletonClipping_clipStart(_clipper, slot, clip);
+        }
+        default: ;
+    }
+    
+    if (texture) {
+        if (slot->data->blendMode != blendMode) {
+            blendMode = slot->data->blendMode;
+            switch (slot->data->blendMode) {
+                case SP_BLEND_MODE_ADDITIVE:
+                    [self setBlendMode:[CCBlendMode addMode]];
+                    srcBlend = !_premultipliedAlpha ? GL_SRC_ALPHA : GL_ONE;
+                    dstBlend = GL_ONE;
+                    break;
+                case SP_BLEND_MODE_MULTIPLY:
+                    [self setBlendMode:[CCBlendMode multiplyMode]];
+                    srcBlend = GL_DST_COLOR;
+                    dstBlend = GL_ONE_MINUS_SRC_ALPHA;
+                    break;
+                case SP_BLEND_MODE_SCREEN:
+                    [self setBlendMode:screenMode];
+                    srcBlend = GL_ONE;
+                    dstBlend = GL_ONE_MINUS_SRC_COLOR;
+                    break;
+                default:
+                    [self setBlendMode:_premultipliedAlpha ? [CCBlendMode premultipliedAlphaMode] : [CCBlendMode alphaMode]];
+                    srcBlend = !_premultipliedAlpha ? GL_SRC_ALPHA : GL_ONE;
+                    dstBlend = GL_ONE_MINUS_SRC_ALPHA;
+            }
+        }
+        if (_premultipliedAlpha) {
+            a *= _skeleton->color.a * slot->color.a;
+            r *= _skeleton->color.r * slot->color.r * a;
+            g *= _skeleton->color.g * slot->color.g * a;
+            b *= _skeleton->color.b * slot->color.b * a;
+        } else {
+            a *= _skeleton->color.a * slot->color.a;
+            r *= _skeleton->color.r * slot->color.r;
+            g *= _skeleton->color.g * slot->color.g;
+            b *= _skeleton->color.b * slot->color.b;
+        }
+        self.texture = texture;
+        CGSize size = texture.contentSize;
+        GLKVector2 center = GLKVector2Make(size.width / 2.0, size.height / 2.0);
+        GLKVector2 extents = GLKVector2Make(size.width / 2.0, size.height / 2.0);
+        if (_skipVisibilityCheck || CCRenderCheckVisbility(transform, center, extents)) {
+            
+            if (spSkeletonClipping_isClipping(_clipper)) {
+                spSkeletonClipping_clipTriangles(_clipper, vertices, verticesCount, triangles, trianglesCount, uvs, 2);
+                vertices = _clipper->clippedVertices->items;
+                verticesCount = _clipper->clippedVertices->size;
+                uvs = _clipper->clippedUVs->items;
+                triangles = _clipper->clippedTriangles->items;
+                trianglesCount = _clipper->clippedTriangles->size;
+            }
+            
+            if (trianglesCount > 0) {
+                if (!self.twoColorTint) {
+                    CCRenderBuffer buffer = [renderer enqueueTriangles:(trianglesCount / 3) andVertexes:verticesCount withState:self.renderState globalSortOrder:0];
+                    for (int i = 0; i * 2 < verticesCount; ++i) {
+                        CCVertex vertex;
+                        vertex.position = GLKVector4Make(vertices[i * 2], vertices[i * 2 + 1], 0.0, 1.0);
+                        vertex.color = GLKVector4Make(r, g, b, a);
+                        vertex.texCoord1 = GLKVector2Make(uvs[i * 2], 1 - uvs[i * 2 + 1]);
+                        CCRenderBufferSetVertex(buffer, i, CCVertexApplyTransform(vertex, transform));
+                    }
+                    for (int j = 0; j * 3 < trianglesCount; ++j) {
+                        CCRenderBufferSetTriangle(buffer, j, triangles[j * 3], triangles[j * 3 + 1], triangles[j * 3 + 2]);
+                    }
+                } else {
+                    if (slot->darkColor) {
+                        dr = slot->darkColor->r;
+                        dg = slot->darkColor->g;
+                        db = slot->darkColor->b;
+                    } else {
+                        dr = dg = db = 0;
+                    }
+                    
+                    spMeshPart meshPart;
+                    spMesh_allocatePart(mesh, &meshPart, verticesCount / 2, trianglesCount, self.texture.name, srcBlend, dstBlend);
+                    
+                    spVertex* verts = &meshPart.mesh->vertices[meshPart.startVertex];
+                    unsigned short* indices = &meshPart.mesh->indices[meshPart.startIndex];
+                    
+                    for (int i = 0; i * 2 < verticesCount; i++, verts++) {
+                        CCVertex vertex;
+                        vertex.position = GLKVector4Make(vertices[i * 2], vertices[i * 2 + 1], 0.0, 1.0);
+                        vertex = CCVertexApplyTransform(vertex, transform);
+                        verts->x = vertex.position.x;
+                        verts->y = vertex.position.y;
+                        verts->z = vertex.position.z;
+                        verts->w = vertex.position.w;
+                        verts->color = ((unsigned short)(r * 255))| ((unsigned short)(g * 255)) << 8 | ((unsigned short)(b * 255)) <<16 | ((unsigned short)(a * 255)) << 24;
+                        verts->color2 = ((unsigned short)(dr * 255)) | ((unsigned short)(dg * 255)) << 8 | ((unsigned short)(db * 255)) << 16 | ((unsigned short)(255)) << 24;
+                        verts->u = uvs[i * 2];
+                        verts->v = 1 - uvs[i * 2 + 1];
+                    }
+                    
+                    for (int j = 0; j < trianglesCount; j++, indices++) {
+                        *indices = triangles[j];
+                    }
+                    
+                    [renderer enqueueBlock:^{
+                        spTwoColorBatcher_add(batcher, meshPart);
+                    } globalSortOrder:0 debugLabel: nil threadSafe: false];
+                }
+            }
+        }
+    }
+    spSkeletonClipping_clipEnd(_clipper, slot);
 }
 
 - (CCTexture*) getTextureForRegion:(spRegionAttachment*)attachment {
