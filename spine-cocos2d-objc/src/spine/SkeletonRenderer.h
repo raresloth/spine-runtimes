@@ -63,6 +63,7 @@
 // --- Convenience methods for common Skeleton_* functions.
 - (void) updateWorldTransform;
 
+- (void)updateColor;
 - (void) setToSetupPose;
 - (void) setBonesToSetupPose;
 - (void) setSlotsToSetupPose;

@@ -161,6 +161,15 @@ static bool handlerQueued = false;
 	[super dealloc];
 }
 
+- (void)updateColor
+{
+    CCColor* nodeColor = self.displayedColor;
+    _skeleton->color.r = nodeColor.red;
+    _skeleton->color.g = nodeColor.green;
+    _skeleton->color.b = nodeColor.blue;
+    _skeleton->color.a = self.displayedOpacity;
+}
+
 -(void)draw:(CCRenderer *)renderer transform:(const GLKMatrix4 *)transform {
 	// FIXME we need to clear the mesh parts at the end of the frame
 	// there's no general event mechanism to get notified on end frame
@@ -175,11 +184,7 @@ static bool handlerQueued = false;
 		handlerQueued = true;
 	}
 	
-	CCColor* nodeColor = self.color;
-	_skeleton->color.r = nodeColor.red;
-	_skeleton->color.g = nodeColor.green;
-	_skeleton->color.b = nodeColor.blue;
-	_skeleton->color.a = self.displayedOpacity;
+    [self updateColor];
 
 	int blendMode = -1;
 	uint32_t srcBlend = GL_SRC_ALPHA;
