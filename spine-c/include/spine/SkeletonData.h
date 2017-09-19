@@ -76,7 +76,7 @@ typedef struct spSkeletonData {
 	spPathConstraintData** pathConstraints;
 } spSkeletonData;
 
-spSkeletonData* spSkeletonData_create ();
+spSkeletonData* spSkeletonData_create (void);
 void spSkeletonData_dispose (spSkeletonData* self);
 
 spBoneData* spSkeletonData_findBone (const spSkeletonData* self, const char* boneName);
